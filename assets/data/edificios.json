@@ -1,0 +1,322 @@
+{
+  "version": "2026-11-20T09:00:00Z",
+  "edificios": [
+    {
+      "id": "k",
+      "codigo": "K",
+      "nombre": "Edificio K",
+      "descripcion": "Edificio de atención estudiantil. Aquí se realizan trámites de inscripción, credencialización, becas y reposición de documentos.",
+      "dependencias": [
+        "Servicios Escolares",
+        "Ventanilla de pagos",
+        "Becas y credencialización"
+      ],
+      "categoria": "servicios",
+      "area": "Área de Servicios",
+      "horarios": "Lun–Vie 8:00–15:00",
+      "radio_cobertura_m": 20,
+      "etiquetas": [
+        "servicios escolares",
+        "credencial",
+        "becas",
+        "ventanilla",
+        "inscripciones",
+        "trámites"
+      ],
+      "foto": "assets/img/edificio_k.jpg",
+      "video": "assets/videos/edificio_k.mp4",
+      "mapa": {
+        "este": 128,
+        "norte": -68,
+        "ancho": 22,
+        "fondo": 22,
+        "alto": 16
+      },
+      "coordenadas": [
+        {
+          "tipo": "ENTRADA_PRINCIPAL",
+          "lat": 18.9992903,
+          "lng": -98.1988447
+        },
+        {
+          "tipo": "ENTRADA_SECUNDARIA",
+          "lat": 18.999488,
+          "lng": -98.1986794
+        },
+        {
+          "tipo": "PERIMETRO",
+          "lat": 18.9992903,
+          "lng": -98.1988884
+        },
+        {
+          "tipo": "PERIMETRO",
+          "lat": 18.9992903,
+          "lng": -98.1986794
+        },
+        {
+          "tipo": "PERIMETRO",
+          "lat": 18.999488,
+          "lng": -98.1986794
+        },
+        {
+          "tipo": "PERIMETRO",
+          "lat": 18.999488,
+          "lng": -98.1988884
+        }
+      ]
+    },
+    {
+      "id": "l",
+      "codigo": "L",
+      "nombre": "Edificio L",
+      "descripcion": "Biblioteca central del campus. Reúne el acervo general, hemeroteca, cubículos de estudio y préstamo de equipo.",
+      "dependencias": [
+        "Biblioteca central",
+        "Hemeroteca",
+        "Sala de estudio silencioso"
+      ],
+      "categoria": "academico",
+      "area": "Área de Estudio",
+      "horarios": "Lun–Vie 7:00–21:00 · Sáb 8:00–14:00",
+      "radio_cobertura_m": 18,
+      "etiquetas": [
+        "biblioteca",
+        "libros",
+        "préstamo",
+        "estudio",
+        "hemeroteca"
+      ],
+      "foto": "assets/img/edificio_l.jpg",
+      "video": null,
+      "mapa": {
+        "este": 52,
+        "norte": -30,
+        "ancho": 22,
+        "fondo": 22,
+        "alto": 12
+      },
+      "coordenadas": [
+        {
+          "tipo": "ENTRADA_PRINCIPAL",
+          "lat": 18.9996317,
+          "lng": -98.199506
+        },
+        {
+          "tipo": "ENTRADA_SECUNDARIA",
+          "lat": 18.9998293,
+          "lng": -98.199506
+        },
+        {
+          "tipo": "PERIMETRO",
+          "lat": 18.9996317,
+          "lng": -98.1996105
+        },
+        {
+          "tipo": "PERIMETRO",
+          "lat": 18.9996317,
+          "lng": -98.1994015
+        },
+        {
+          "tipo": "PERIMETRO",
+          "lat": 18.9998293,
+          "lng": -98.1994015
+        },
+        {
+          "tipo": "PERIMETRO",
+          "lat": 18.9998293,
+          "lng": -98.1996105
+        }
+      ]
+    },
+    {
+      "id": "m",
+      "codigo": "M",
+      "nombre": "Edificio M",
+      "descripcion": "Edificio de laboratorios de cómputo y redes. Alberga prácticas de ingeniería en sistemas y soporte técnico.",
+      "dependencias": [
+        "Laboratorio de cómputo",
+        "Laboratorio de redes",
+        "Coordinación de Ingeniería en Sistemas"
+      ],
+      "categoria": "academico",
+      "area": "Área Académica",
+      "horarios": "Lun–Vie 7:00–20:00",
+      "radio_cobertura_m": 20,
+      "etiquetas": [
+        "laboratorio",
+        "cómputo",
+        "redes",
+        "sistemas",
+        "ingeniería"
+      ],
+      "foto": "assets/img/edificio_m.jpg",
+      "video": "assets/videos/edificio_m.mp4",
+      "mapa": {
+        "este": 60,
+        "norte": 110,
+        "ancho": 24,
+        "fondo": 22,
+        "alto": 14
+      },
+      "coordenadas": [
+        {
+          "tipo": "ENTRADA_PRINCIPAL",
+          "lat": 19.0008893,
+          "lng": -98.19943
+        },
+        {
+          "tipo": "ENTRADA_SECUNDARIA",
+          "lat": 19.001087,
+          "lng": -98.19943
+        },
+        {
+          "tipo": "PERIMETRO",
+          "lat": 19.0008893,
+          "lng": -98.199544
+        },
+        {
+          "tipo": "PERIMETRO",
+          "lat": 19.0008893,
+          "lng": -98.1993159
+        },
+        {
+          "tipo": "PERIMETRO",
+          "lat": 19.001087,
+          "lng": -98.1993159
+        },
+        {
+          "tipo": "PERIMETRO",
+          "lat": 19.001087,
+          "lng": -98.199544
+        }
+      ]
+    },
+    {
+      "id": "c",
+      "codigo": "C",
+      "nombre": "Cafetería Central",
+      "descripcion": "Cafetería central con servicio de alimentos, área de mesas interiores y terraza exterior.",
+      "dependencias": [
+        "Cafetería central",
+        "Cocina",
+        "Terraza de mesas"
+      ],
+      "categoria": "servicios",
+      "area": "Área de Comedor",
+      "horarios": "Lun–Vie 7:00–18:00",
+      "radio_cobertura_m": 18,
+      "etiquetas": [
+        "comida",
+        "café",
+        "cafetería",
+        "comedor",
+        "alimentos"
+      ],
+      "foto": "assets/img/edificio_c.jpg",
+      "video": null,
+      "mapa": {
+        "este": -70,
+        "norte": -20,
+        "ancho": 22,
+        "fondo": 22,
+        "alto": 8
+      },
+      "coordenadas": [
+        {
+          "tipo": "ENTRADA_PRINCIPAL",
+          "lat": 18.9997215,
+          "lng": -98.2006651
+        },
+        {
+          "tipo": "ENTRADA_SECUNDARIA",
+          "lat": 18.9999192,
+          "lng": -98.2006651
+        },
+        {
+          "tipo": "PERIMETRO",
+          "lat": 18.9997215,
+          "lng": -98.2007696
+        },
+        {
+          "tipo": "PERIMETRO",
+          "lat": 18.9997215,
+          "lng": -98.2005605
+        },
+        {
+          "tipo": "PERIMETRO",
+          "lat": 18.9999192,
+          "lng": -98.2005605
+        },
+        {
+          "tipo": "PERIMETRO",
+          "lat": 18.9999192,
+          "lng": -98.2007696
+        }
+      ]
+    },
+    {
+      "id": "r",
+      "codigo": "R",
+      "nombre": "Rectoría",
+      "descripcion": "Sede administrativa de la universidad. Concentra rectoría, secretaría general y áreas de gestión institucional.",
+      "dependencias": [
+        "Rectoría",
+        "Secretaría General",
+        "Recursos Humanos",
+        "Dirección de Vinculación"
+      ],
+      "categoria": "administrativo",
+      "area": "Área Administrativa",
+      "horarios": "Lun–Vie 9:00–17:00",
+      "radio_cobertura_m": 22,
+      "etiquetas": [
+        "rectoría",
+        "dirección",
+        "oficinas",
+        "administración",
+        "recursos humanos"
+      ],
+      "foto": "assets/img/edificio_r.jpg",
+      "video": null,
+      "mapa": {
+        "este": -100,
+        "norte": 150,
+        "ancho": 24,
+        "fondo": 24,
+        "alto": 18
+      },
+      "coordenadas": [
+        {
+          "tipo": "ENTRADA_PRINCIPAL",
+          "lat": 19.0012397,
+          "lng": -98.2009501
+        },
+        {
+          "tipo": "ENTRADA_SECUNDARIA",
+          "lat": 19.0014553,
+          "lng": -98.2009501
+        },
+        {
+          "tipo": "PERIMETRO",
+          "lat": 19.0012397,
+          "lng": -98.2010641
+        },
+        {
+          "tipo": "PERIMETRO",
+          "lat": 19.0012397,
+          "lng": -98.2008361
+        },
+        {
+          "tipo": "PERIMETRO",
+          "lat": 19.0014553,
+          "lng": -98.2008361
+        },
+        {
+          "tipo": "PERIMETRO",
+          "lat": 19.0014553,
+          "lng": -98.2010641
+        }
+      ]
+    }
+  ]
+}

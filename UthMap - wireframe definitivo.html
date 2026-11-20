@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>UniCompass · Maps isométrico</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700&family=Space+Mono:wght@400;700&display=swap');
+:root{--page:#FFFFFF;--ink:#111317;--dim:#6B6F76;--line:#E4E2DD;
+ box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--ink);font-family:"Space Grotesk","Helvetica Neue",Arial,sans-serif;min-height:100vh}
+.stage{padding:32px 20px 40px max(20px,8vw);display:grid;grid-template-columns:375px;gap:28px;max-width:100%}
+@media (min-width:900px){.stage{grid-template-columns:375px 220px;align-items:end;column-gap:64px}}
+.cv{position:relative;width:375px;max-width:100%;height:760px;border:1px solid var(--line);border-radius:28px;overflow:hidden;background:#F9F8F6}
+.a{position:absolute}
+.sb{left:14px;right:14px;top:16px;height:50px;border-radius:16px;background:#fff;box-shadow:0 1px 3px rgba(17,19,23,.14);display:flex;align-items:center;gap:10px;padding:0 7px 0 14px;z-index:4;border:1px solid #EFEDE9}
+.sb input{flex:1;min-width:0;background:transparent;border:0;color:#111317;font:400 14px "Space Grotesk",Arial,sans-serif}
+.sb input::placeholder{color:#7A7E85}
+.sb input:focus-visible{outline:none}
+.sb:focus-within{border-color:#0055FF}
+.opt{display:block;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid #EFEDE9;padding:11px 16px;color:#111317;font:500 14px "Space Grotesk",Arial,sans-serif;cursor:pointer;transition:color .15s ease-out}
+.opt:last-child{border-bottom:0}.opt:hover,.opt:focus-visible{color:#0055FF}
+.sheet{left:0;right:0;bottom:0;height:218px;background:#fff;border-radius:32px 32px 0 0;box-shadow:0 -1px 10px rgba(17,19,23,.12);transition:height .25s ease-out;overflow:hidden;z-index:3}
+.grab{display:block;width:100%;height:28px;background:transparent;border:0;cursor:grab;padding:0;touch-action:none}
+.grab i{display:block;width:40px;height:4px;border-radius:2px;background:#D6D4CF;margin:12px auto 0}
+.bd{font:400 12px "Space Mono",ui-monospace,Menlo,monospace;padding:4px 10px;border-radius:6px;white-space:nowrap;transition:background-color .15s ease-out,color .15s ease-out}
+.cta{background:#171717;color:#fff;font:500 12px "Space Grotesk",Arial,sans-serif;letter-spacing:.06em;padding:12px 0;border-radius:12px;border:0;width:100%;cursor:pointer;transition:background-color .15s ease-out}
+.cta:hover{background:#262626}
+button:focus-visible,input:focus-visible{outline:2px solid #0055FF;outline-offset:2px}
+input[type=range]{width:100%;accent-color:#0055FF;margin:6px 0 0}
+.tx{background:none;border:0;padding:0;margin:0;cursor:pointer;font:inherit;color:inherit;text-align:left}
+.ctl{font-size:12px;color:var(--dim);margin-right:16px;text-decoration:underline;text-underline-offset:3px}
+.tiny{font-size:10px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--dim)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="cv" id="cv">
+    <svg id="map" class="a" viewBox="0 0 373 758" width="373" height="758" style="left:0;top:0" role="img" aria-label="Mapa isométrico simulado del campus con el vector de rumbo flotando sobre tu posición"></svg>
+
+    <label class="a sb"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6B6F76" stroke-width="2" stroke-linecap="round" aria-hidden="true" style="flex:none"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+      <input id="q" type="search" autocomplete="off" aria-label="Buscar aula, edificio o palabra clave" placeholder="Escribe un aula, edificio o palabra clave...">
+      <svg width="36" height="36" viewBox="0 0 36 36" role="img" aria-label="Perfil de Carlos" style="flex:none"><circle cx="18" cy="18" r="18" fill="#111317"/><text x="18" y="23" text-anchor="middle" font-size="13" font-weight="500" fill="#fff" font-family="Space Grotesk,Arial,sans-serif">CR</text></svg></label>
+    <div id="res" class="a" style="left:14px;right:14px;top:72px;border-radius:16px;background:#fff;box-shadow:0 2px 10px rgba(17,19,23,.14);z-index:6;display:none;overflow:hidden"></div>
+
+    <div id="sh" class="a sheet">
+      <button id="gr" class="grab" type="button" aria-expanded="true" aria-controls="sbd" aria-label="Expandir o contraer panel"><i></i></button>
+      <div id="sbd" style="padding:2px 22px 22px">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+          <div id="tt" style="font-size:20px;font-weight:700;letter-spacing:-.01em">Edificio K</div>
+          <span id="bg" class="bd" style="background:#E8F3EA;color:#2F6B3A">• Área de Servicios</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:14px;margin-top:14px">
+          <div id="ds" class="text-xl font-bold" style="font-size:20px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap">145 m</div>
+          <div id="nt" class="text-xs text-neutral-500" style="font-size:12px;color:#737373;line-height:1.4">A tus espaldas, gira a la izquierda</div>
+        </div>
+        <div id="ex" style="margin-top:18px"><button type="button" class="cta">[ REPRODUCIR RECORRIDO EN VIDEO — MP4 ]</button></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="padding-bottom:6px">
+    <div class="tiny" style="margin-bottom:10px">Sensores simulados</div>
+    <label for="hs" style="font-size:12px;color:var(--dim)">Orientación <span id="hv" style="color:var(--ink)">278°</span></label>
+    <input id="hs" type="range" min="0" max="359" value="278">
+    <div style="margin-top:14px"><button class="tx ctl" id="walk">Caminar</button><button class="tx ctl" id="align">Alinear</button><button class="tx ctl" id="reset">Reiniciar</button></div>
+    <p style="font-size:11px;color:var(--dim);line-height:1.6;margin:18px 0 0;max-width:210px">Aviso ≤ 20 m. Llegada ≤ 15 m. El vector apunta al acceso; el cono azul muestra hacia dónde mira el teléfono.</p>
+  </div>
+</div>
+
+<script>
+(function(){
+const R=6371000,rad=d=>d*Math.PI/180,deg=r=>r*180/Math.PI,mod=a=>((a%360)+360)%360;
+function haversine(a,b,c,d){const p=rad(c-a),l=rad(d-b),x=Math.sin(p/2)**2+Math.cos(rad(a))*Math.cos(rad(c))*Math.sin(l/2)**2;return 2*R*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));}
+function bearing(a,b,c,d){const l=rad(d-b),y=Math.sin(l)*Math.cos(rad(c)),x=Math.cos(rad(a))*Math.sin(rad(c))-Math.sin(rad(a))*Math.cos(rad(c))*Math.cos(l);return mod(deg(Math.atan2(y,x)));}
+const nt=r=>(r>=315||r<45)?'Al frente, sigue recto':r<135?'A tu derecha, gira a la derecha':r<225?(r<180?'A tus espaldas, gira a la derecha':'A tus espaldas, gira a la izquierda'):'A tu izquierda, gira a la izquierda';
+const O={lat:19,lon:-98.2},at=(n,e)=>({lat:O.lat+n/111320,lon:O.lon+e/(111320*Math.cos(rad(O.lat)))});
+const B=[
+ {c:'K',t:'Edificio K',n:-68,e:128,tags:'servicios escolares credencial becas ventanilla',a:'Área de Servicios',h:16},
+ {c:'L',t:'Edificio L',n:-30,e:52,tags:'biblioteca libros préstamo',a:'Área de Estudio',h:12},
+ {c:'M',t:'Edificio M',n:110,e:60,tags:'laboratorio cómputo redes sistemas',a:'Área Académica',h:14},
+ {c:'C',t:'Cafetería Central',n:-20,e:-70,tags:'comida café cafetería',a:'Área de Comedor',h:8},
+ {c:'R',t:'Rectoría',n:150,e:-100,tags:'dirección oficinas administrativo',a:'Área Administrativa',h:18}].map(x=>({...x,...at(x.n,x.e),w:22,d:22}));
+const F=[[30,-40],[-40,60],[90,20],[180,70],[-110,-60],[70,150],[-60,-110],[190,-40],[-20,-170],[140,-150],[-150,40],[20,110]].map(p=>({n:p[1],e:p[0],w:18,d:18,h:8+((p[0]*7+p[1]*3)%7+7)%7}));
+let dest=B[0],u={...O},hdg=278,walking=false,inside=null,open=true;
+const $=id=>document.getElementById(id);
+const c30=.8660254,s30=.5,S=1.6,CXs=175,CYs=250;
+const toM=p=>({n:(p.lat-O.lat)*111320,e:(p.lon-O.lon)*111320*Math.cos(rad(O.lat))});
+let UE=0,UN=0;
+const P=(e,n,z)=>[CXs+((e-UE)+(n-UN))*c30*S,CYs+((e-UE)-(n-UN))*s30*S-(z||0)*S];
+const pt=a=>a.map(q=>q[0].toFixed(1)+','+q[1].toFixed(1)).join(' ');
+function cube(o,hi){const x0=o.e-o.w/2,x1=o.e+o.w/2,y0=o.n-o.d/2,y1=o.n+o.d/2,h=o.h,st=hi?'#0055FF':'#CFCCC5',sw=hi?1.5:1;
+ return '<polygon points="'+pt([P(x1,y0,0),P(x1,y1,0),P(x1,y1,h),P(x1,y0,h)])+'" fill="#DAD7D1" stroke="'+st+'" stroke-width="'+sw+'" stroke-linejoin="round"/>'+
+ '<polygon points="'+pt([P(x0,y0,0),P(x1,y0,0),P(x1,y0,h),P(x0,y0,h)])+'" fill="#E4E2DD" stroke="'+st+'" stroke-width="'+sw+'" stroke-linejoin="round"/>'+
+ '<polygon points="'+pt([P(x0,y0,h),P(x1,y0,h),P(x1,y1,h),P(x0,y1,h)])+'" fill="'+(hi?'#FFFFFF':'#F1EFEB')+'" stroke="'+st+'" stroke-width="'+sw+'" stroke-linejoin="round"/>';}
+function draw(){
+ const m=toM(u);UE=m.e;UN=m.n;const k=toM(dest);
+ let g='';const L=(a,b,st,w,da)=>'<line x1="'+a[0].toFixed(1)+'" y1="'+a[1].toFixed(1)+'" x2="'+b[0].toFixed(1)+'" y2="'+b[1].toFixed(1)+'" stroke="'+st+'" stroke-width="'+w+'"'+(da?' stroke-dasharray="'+da+'"':'')+' stroke-linecap="round"/>';
+ // suelo: rejilla tenue
+ const e0=Math.floor((UE-260)/20)*20,n0=Math.floor((UN-260)/20)*20;
+ for(let i=0;i<=26;i++){const e=e0+i*20,n=n0+i*20;g+=L(P(e,UN-260),P(e,UN+260),'#EEECE7',1)+L(P(UE-260,n),P(UE+260,n),'#EEECE7',1);}
+ // andadores (dos bordes de 1px)
+ [-60,40,140].forEach(e=>[e-4,e+4].forEach(x=>{g+=L(P(x,UN-260),P(x,UN+260),'#D2CFC8',1);}));
+ [-45,30,120].forEach(n=>[n-4,n+4].forEach(y=>{g+=L(P(UE-260,y),P(UE+260,y),'#D2CFC8',1);}));
+ // ruta, cono y sombra
+ g+=L(P(UE,UN),P(k.e,k.n),'#0055FF',1,'2 5').replace('stroke="#0055FF"','stroke="#0055FF" stroke-opacity=".45"');
+ const cp=[P(UE,UN)];for(let a=-30;a<=30;a+=10){const t=rad(hdg+a);cp.push(P(UE+28*Math.sin(t),UN+28*Math.cos(t)));}
+ g+='<polygon points="'+pt(cp)+'" fill="#0055FF" fill-opacity=".09"/>';
+ const ring=[];for(let a=0;a<360;a+=20){const t=rad(a);ring.push(P(UE+5*Math.sin(t),UN+5*Math.cos(t)));}
+ g+='<polygon points="'+pt(ring)+'" fill="#0055FF" fill-opacity=".14" stroke="#0055FF" stroke-width="1.2"/>';
+ const b=bearing(u.lat,u.lon,dest.lat,dest.lon),tb=rad(b),tipE=UE+38*Math.sin(tb),tipN=UN+38*Math.cos(tb);
+ g+=L(P(UE,UN),P(tipE,tipN),'rgba(17,19,23,.2)',4);
+ // edificios en orden de profundidad
+ const all=[...F.map(o=>({o,hi:0})),...B.map(o=>({o,hi:o===dest?1:0}))].sort((a,c)=>(a.o.e-a.o.n)-(c.o.e-c.o.n));
+ all.forEach(x=>{g+=cube(x.o,x.hi);});
+ B.forEach(o=>{const p=P(o.e,o.n,o.h+7);g+='<text x="'+p[0].toFixed(1)+'" y="'+p[1].toFixed(1)+'" text-anchor="middle" font-size="11" font-weight="700" font-family="Space Mono,monospace" fill="'+(o===dest?'#0055FF':'#8A8D93')+'">'+o.c+'</text>';});
+ // aguja flotante
+ const Z=14,p0=P(UE,UN,Z),p1=P(tipE,tipN,Z),vx=p1[0]-p0[0],vy=p1[1]-p0[1],ln=Math.hypot(vx,vy)||1,ux=vx/ln,uy=vy/ln;
+ g+=L(P(UE,UN),p0,'#0055FF',1,'2 3')+L(P(tipE,tipN),p1,'#0055FF',1,'2 3');
+ g+=L(p0,p1,'#0055FF',2.5);
+ g+='<polygon points="'+pt([p1,[p1[0]-ux*10-uy*4.5,p1[1]-uy*10+ux*4.5],[p1[0]-ux*10+uy*4.5,p1[1]-uy*10-ux*4.5]])+'" fill="#0055FF"/>';
+ g+='<circle cx="'+p0[0].toFixed(1)+'" cy="'+p0[1].toFixed(1)+'" r="3.5" fill="#fff" stroke="#0055FF" stroke-width="1.5"/>';
+ $('map').innerHTML=g;
+}
+function render(){
+ const d=haversine(u.lat,u.lon,dest.lat,dest.lon),b=bearing(u.lat,u.lon,dest.lat,dest.lon),rel=mod(b-hdg);
+ $('hv').textContent=Math.round(hdg)+'°';
+ const arr=d<=15,on=d<=20;
+ $('tt').textContent=dest.t;$('ds').textContent=arr?'Llegaste':Math.round(d)+' m';
+ $('nt').textContent=arr?'Estás en el acceso, abre la ficha completa':nt(rel);
+ const bg=$('bg');bg.textContent=(on?'• ':'○ ')+(on?dest.a:'Fuera del área');bg.style.background=on?'#E8F3EA':'#F1EFEB';bg.style.color=on?'#2F6B3A':'#6B6F76';
+ let near=null,nd=1e9;B.forEach(x=>{const k=haversine(u.lat,u.lon,x.lat,x.lon);if(k<nd){nd=k;near=x;}});
+ const now=nd<=20?near:null;if(now&&now!==inside){try{navigator.vibrate&&navigator.vibrate(60);}catch(e){}}inside=now;
+ draw();return d;
+}
+function step(){const b=bearing(u.lat,u.lon,dest.lat,dest.lon),m=3;
+ u.lat+=m*Math.cos(rad(b))/111320;u.lon+=m*Math.sin(rad(b))/(111320*Math.cos(rad(u.lat)));
+ if(render()<=15){walking=false;$('walk').textContent='Caminar';}}
+setInterval(()=>{if(walking)step();},300);
+$('walk').onclick=()=>{walking=!walking;$('walk').textContent=walking?'Pausar':'Caminar';};
+$('hs').oninput=e=>{hdg=+e.target.value;render();};
+$('align').onclick=()=>{hdg=Math.round(bearing(u.lat,u.lon,dest.lat,dest.lon))%360;$('hs').value=hdg;render();};
+$('reset').onclick=()=>{u={...O};walking=false;inside=null;$('walk').textContent='Caminar';render();};
+const q=$('q'),res=$('res');
+q.addEventListener('input',()=>{const t=q.value.trim().toLowerCase();res.innerHTML='';res.style.display='none';if(!t)return;
+ const m=B.filter(x=>(x.t+' '+x.tags+' '+x.a).toLowerCase().includes(t)).slice(0,4);res.style.display='block';
+ if(!m.length){res.innerHTML='<div style="padding:12px 16px;font-size:13px;color:#6B6F76">Sin resultados</div>';return;}
+ m.forEach(x=>{const b=document.createElement('button');b.type='button';b.className='opt';b.textContent=x.t+' — '+x.a;
+  b.onclick=()=>{dest=x;q.value='';res.style.display='none';render();};res.appendChild(b);});});
+const sh=$('sh');
+function setOpen(o){open=o;sh.style.height=o?'218px':'146px';$('ex').style.display=o?'block':'none';$('gr').setAttribute('aria-expanded',o);}
+let y0=null;
+$('gr').addEventListener('pointerdown',e=>{y0=e.clientY;});
+$('gr').addEventListener('pointerup',e=>{if(y0===null)return;const dy=e.clientY-y0;y0=null;if(dy>30)setOpen(false);else if(dy<-30)setOpen(true);else setOpen(!open);});
+$('gr').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();setOpen(!open);}});
+render();
+})();
+</script>
+</body>
+</html>
