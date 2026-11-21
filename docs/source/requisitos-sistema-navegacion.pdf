@@ -1,0 +1,206 @@
+Sistema de Navegación por Rumbo, Geocercado Perimetral y Guía
+Universitaria Basado en Sensores Móviles
+1. DESCRIPCIÓN GENERAL
+Desarrollo de un sistema multiplataforma compuesto por un Backend (Panel Administrativo
+Web) y un Frontend (Aplicación Móvil para Smartphone) para la orientación espacial y guía
+descriptiva interactiva de la comunidad universitaria dentro de las instalaciones del campus.
+El objetivo principal es evaluar el desarrollo de aplicaciones móviles con integración de
+servicios web y hardware nativo (sensor de posición geográfica y magnetómetro/brújula digital).
+2. MODOS DE OPERACIÓN DE LA APLICACIÓN
+El sistema opera bajo dos modalidades en el cliente móvil:
+● Modo A: Navegación Dirigida por Destino (Búsqueda Activa): El usuario selecciona una
+dependencia, carrera, ventanilla o edificio desde un buscador o directorio clasificado. La
+brújula fija el rumbo hacia el punto de acceso registrado de dicho inmueble, calculando
+la distancia restante en tiempo real.
+● Modo B: Exploración Libre y Proximidad (Guía Pasiva en Ruta): Sin fijar un destino
+obligatorio, el usuario camina por los andadores del campus. El sensor de posición
+evalúa continuamente su ubicación respecto a los edificios registrados. Al aproximarse a
+un inmueble dentro de su radio de cobertura, la aplicación muestra una tarjeta
+informativa con los detalles y servicios del lugar.
+3. DINÁMICA DE NAVEGACIÓN Y FLUJO DE EXPERIENCIA
+● Sincronización Inicial de Datos (Carga Rápida):
+Al abrir la aplicación con conexión de red, el dispositivo descarga el catálogo completo
+de edificios (identificador, nombre, descripción, coordenadas de acceso y fotografía).
+Esta información se almacena en memoria local para operar sin depender de
+conectividad continua a Internet.
+● Detección de Edificios Cercanos (A 20 metros o menos del punto de referencia):
+Conforme el usuario camina, la app evalúa la distancia geodésica lineal. Al encontrarse
+a 20 metros o menos del punto de referencia registrado:
+○ El dispositivo emite un sonido o vibración corta de aviso.
+○ Se muestra una notificación o tarjeta visual indicando el nombre del edificio.
+○ El usuario puede pulsar el aviso para consultar la información detallada.
+● Búsqueda y Selección de Destino:
+El usuario puede consultar el directorio o escribir en la barra de búsqueda (por ejemplo:
+"Edificio K", "Servicios Escolares", "Laboratorio"). Al seleccionar un elemento, se
+presentan sus datos generales y se activa la pantalla de navegación por rumbo.
+● Navegación por Brújula en Ruta (A más de 20 metros):
+La pantalla muestra una interfaz con una aguja o indicador rotacional que gira
+continuamente señalando la dirección en línea recta hacia el punto de acceso del
+destino seleccionado, actualizando los metros restantes paso a paso.
+
+● Llegada al lugar (A 15 metros o menos del acceso):
+Al alcanzar el umbral de proximidad de llegada (15 metros):
+○ El teléfono emite una alerta de confirmación.
+○ La brújula da paso automático a la Ficha Informativa Completa: nombre oficial,
+dependencias que alberga, horarios y fotografía de la fachada.
+4. FUNCIONALIDADES SEGÚN ROL DE USUARIO
+Usuario / Alumno (Aplicación Móvil):
+● Sincronizar y almacenar en memoria local el catálogo de edificios vía servicio web.
+● Explorar el directorio general clasificado por categorías (Académico, Administrativo, Servicios).
+● Filtrar destinos mediante barra de búsqueda de texto.
+● Visualizar la interfaz de rumbo con indicador rotacional basado en magnetómetro y distancia
+calculada en tiempo real.
+● Desplegar fichas informativas por proximidad geográfica o selección directa.
+Administrador / Coordinador (Panel Web):
+● Autenticación: Inicio de sesión protegido para gestión de contenido.
+● Gestión de Edificios y Ubicaciones: Alta, edición y baja de registros (código, nombre oficial,
+descripción general y dependencias).
+● Georreferenciación de Accesos: Registro de coordenadas centrales del punto de acceso
+principal (latitud y longitud) y definición de su radio de cobertura en metros.
+●
+● Gestión Multimedia: Carga de fotografías de fachada y almacenamiento en servidor para
+consumo móvil.
+● Servicio de Datos: Exposición de la información en formato ligero optimizado para clientes
+móviles.
+5. NOTAS DE ARQUITECTURA Y ESPECIFICACIÓN TÉCNICA
+● NOTA 1 (Arquitectura Local y Consumo de Red): La aplicación móvil procesa los cálculos de
+distancia y rumbo de manera local. La red se utiliza exclusivamente para la descarga inicial de
+los datos (ubicaciones gps) y la obtención de la información e imágenes de edificios.
+● NOTA 2 (Independencia de SDKs Cartográficos): El sistema opera sin requerir mapas
+interactivos comerciales de paga. La orientación se basa en cálculo trigonométrico y lectura de
+sensores directos.
+● NOTA 3 (Cálculo de Distancia Geodésica): Obligatorio el uso del algoritmo de Distancia por
+Fórmula de Haversine (Haversine formula for distance between two GPS coordinates). Se
+investiga como el cálculo que determina la distancia en línea recta sobre la superficie esférica
+terrestre a partir de dos pares de coordenadas (latitud y longitud en radianes), utilizando el radio
+medio de la Tierra (6,371,000 metros).
+● NOTA 4 (Cálculo de Rumbo Absoluto hacia el Destino): Obligatorio el cálculo del Rumbo Inicial o
+Azimut Geodésico (Initial Bearing or Forward Azimuth formula). Se investiga como el cálculo
+trigonométrico basado en la función arcotangente de dos argumentos (atan2) que devuelve el
+ángulo absoluto en grados (de 0 a 360 grados con respecto al Norte geográfico) hacia el cual se
+debe avanzar para llegar al punto destino.
+● NOTA 5 (Rotación Visual de la Aguja en Pantalla): El ángulo de giro para orientar el gráfico de la
+aguja en la interfaz móvil se obtiene mediante la Diferencia Angular Normalizada entre Rumbo y
+Orientación del Teléfono (Bearing minus Heading modular adjustment). Se investiga cómo
+calcular la resta del rumbo hacia el edificio menos la dirección leída del magnetómetro, aplicando
+una operación módulo 360 para mantener el resultado siempre entre 0 y 359 grados.
+
+● NOTA 6 (Tolerancias Geográficas del Sensor): Para compensar el margen de error físico del
+sensor de posición en dispositivos móviles, el umbral de llegada a destino se fija en 15 a 20
+metros del acceso, garantizando una detección estable en exteriores.
+6. CRITERIOS DE EVALUACIÓN BASE
+Calificación Mínima Aprobatoria (70 / 7.0) — Fundamentos y Conectividad
+● Requisitos para Web (Backend):
+○ Panel administrativo funcional con inicio de sesión seguro.
+○ Módulo para dar de alta, editar, consultar y eliminar edificios con sus datos básicos
+(nombre, código, descripción y dependencias).
+○ Registro de coordenadas geográficas base (latitud y longitud) para cada edificio.
+○ Exposición de los datos para que puedan ser consultados de forma remota por la
+aplicación móvil.
+Requisitos para Móvil (Frontend):
+○ Interfaz gráfica maquetada con pantalla de bienvenida, vista de directorio y pantalla de
+detalle del inmueble.
+○ Conexión exitosa para descargar el catálogo de edificios y almacenarlo de manera
+persistente en la memoria del dispositivo.
+○ Navegación manual fluida: el usuario puede seleccionar cualquier edificio de la lista
+descargada y abrir su ficha informativa completa sin depender de conexión a Internet.
+Calificación Intermedia (80 / 8.0) — Geocercado y Guía Pasiva (Modo B)
+● Requisitos para Web (Backend):
+○ Cumplir con todos los requisitos del nivel 7.0.
+○ Módulo de carga y almacenamiento de fotografías reales de la fachada de cada edificio
+en el servidor.
+○ Campo configurable en el panel para definir el radio de cobertura o proximidad en metros
+por cada inmueble.
+○ Optimización del servicio de datos para incluir las rutas de las imágenes y los radios de
+detección sin errores de formato.
+● Requisitos para Móvil (Frontend):
+○ Cumplir con todos los requisitos del nivel 7.0.
+○ Modo B (Exploración Libre) completado:
+■ Implementación correcta del cálculo de Distancia por Fórmula de Haversine.
+■ Lectura activa y continua de las coordenadas del sensor de posición (GPS)
+mientras el usuario camina por los andadores.
+■ Detección por geocerca: disparo automático de una alerta sonora/háptica y
+despliegue de la tarjeta informativa con fotografía al entrar en el radio de 15 a 20
+metros del punto registrado.
+Calificación Superior (90 / 9.0) — Navegación Activa y Fusión de Sensores (Modo A)
+● Requisitos para Web (Backend):
+○ Cumplir con todos los requisitos del nivel 8.0.
+○ Gestión de palabras clave o etiquetas de búsqueda por edificio (servicios, trámites,
+carreras u oficinas específicas que alberga) para enriquecer el catálogo.
+○ Registro y validación precisa de las coordenadas del punto de acceso o puerta principal
+de entrada de cada inmueble.
+● Requisitos para Móvil (Frontend):
+○ Cumplir con todos los requisitos del nivel 8.0.
+○ Modo A (Búsqueda Activa y Navegación Guiada) completado:
+■ Barra de búsqueda predictiva o con filtrado en tiempo real que localice destinos
+por nombre, dependencia o palabra clave.
+■ Implementación del cálculo de Rumbo Inicial (Bearing) hacia la entrada del
+destino seleccionado.
+■ Integración del magnetómetro del dispositivo para obtener la orientación del
+teléfono.
+
+■ Interfaz de brújula funcional con aguja o indicador gráfico que rota continuamente
+apuntando hacia la puerta de acceso, con contador dinámico de metros restantes
+hasta llegar al umbral de arribo (15 metros).
+7. FUNCIONALIDADES PARA PUNTOS EXTRAS
+(Nota sobre Puntos Extra y Garantía de Calificación): Ningún sistema de navegación en vivo está
+exento de fallos de precisión por sensores o red durante la evaluación física. Los módulos de esta
+Sección no solo permiten alcanzar la calificación máxima de 100 / 10.0, sino que funcionan como un
+colchón de seguridad acumulable. Los puntos extra acreditados amortiguarán y compensarán cualquier
+detalle técnico o penalización que pueda surgir en los módulos base. Se recomienda enfáticamente a
+todos los equipos implementar al menos 2 retos para asegurar su nota.
+RETO MAYOR (+10 PUNTOS DIRECTOS): Arquitectura Espacial Multi-Punto y Orientación por
+Cuadrantes
+● Objetivo: Resolver integralmente la cobertura perimetral en edificios grandes (eliminando puntos
+ciegos en andadores traseros o laterales) y dotar a la aplicación móvil de retroalimentación
+direccional contextual en tiempo real respecto al cuerpo del usuario.
+● Componentes obligatorios del reto:
+1. Reestructuración de Datos y Backend: Modificar la base de datos para desacoplar las
+coordenadas del edificio hacia una entidad relacional 1 a N (edificios_coordenadas_gps),
+clasificando cada punto (ENTRADA_PRINCIPAL, ENTRADA_SECUNDARIA,
+PERIMETRO). El panel web debe permitir dar de alta múltiples puntos por inmueble y el
+backend debe serializarlos según el contrato de API.
+2. Detección Perimetral y Navegación Inteligente (Móvil): En Modo B, la geocerca debe
+activarse si el usuario camina cerca de cualquier punto registrado (frente, costados o
+parte trasera). En Modo A (Brújula), el algoritmo debe descartar puntos de perímetro y
+orientar la aguja exclusivamente hacia la puerta transitable más cercana.
+3. Orientación Relativa Textual por Cuadrantes (Móvil): Calcular la diferencia angular
+entre la orientación del dispositivo (heading del magnetómetro) y el rumbo hacia el
+edificio (bearing) para indicar de manera dinámica la posición relativa:
+■ De 315° a 45°: "Al frente"
+■ De 45° a 135°: "A tu derecha"
+■ De 135° a 225°: "A tus espaldas"
+■ De 225° a 315°: "A tu izquierda"
+● MÓDULO EXTRA 1 (+3 pts): Filtro Pasa-Bajas para Suavizado de Brújula
+○ Objetivo: Atenuar las oscilaciones violentas (jittering) causadas por el ruido
+electromagnético y el movimiento natural al caminar.
+○ Implementación: Aplicar un filtro pasa-bajas digital de primer orden (ponderación 𝝰
+(ALFA) entre 0.10 y 0.20) sobre las lecturas del magnetómetro, resolviendo la
+discontinuidad angular del paso por el Norte (359° a 0°) mediante la distancia angular
+más corta.
+● MÓDULO EXTRA 2 (+3 pts): Vista Alternativa de Mapa Interactivo con Polyline
+○ Objetivo: Ofrecer una interfaz cartográfica visual complementaria a la aguja de rumbo.
+○ Implementación: Incorporar una vista basada en capas libres de OpenStreetMap (sin
+requerir credenciales ni APIs de pago) que dibuje un marcador dinámico en la posición
+del usuario, el marcador del destino y una línea recta (polyline) continua que se actualice
+en tiempo real conforme avanza hacia el edificio.
+MÓDULO EXTRA 3 (+3 pts): Guía Audiovisual con Video Demostrativo del Inmueble
+● Objetivo: Proporcionar al usuario un recorrido visual o cápsula informativa en video sobre el
+edificio, sus instalaciones interiores o el acceso principal para facilitar su reconocimiento en el
+campus.
+● Ajuste en Base de Datos (Backend / Django):
+○ Agregar en la entidad edificios la columna url_video VARCHAR(255) NULL (o
+FileField en el modelo de Django).
+
+○ En el panel administrativo web, incorporar el campo de carga de archivo multimedia
+(formato MP4) o un campo de enlace directo accesible vía HTTP/HTTPS.
+○ Serializar la propiedad en los endpoints de la API ("url_video":
+"https://nombre_dominio/media/videos/edificio_k.mp4" o null si no
+cuenta con material cargado).
+● Implementación en la Aplicación Móvil:
+○ Ficha Informativa del Edificio: Si url_video no es nulo, desplegar un botón o
+miniatura de reproducción interactiva ("Ver recorrido en video").
+○ Reproductor Integrado: Implementar un visor de video nativo (video_player /
+chewie en Flutter) que reproduzca el clip con controles básicos (reproducir, pausar,
+barra de progreso y opción de pantalla completa), manejando estados de carga y error si
+el dispositivo pierde conectividad.

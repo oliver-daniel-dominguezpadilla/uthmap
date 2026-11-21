@@ -1,0 +1,1278 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Manual de Endpoints | Orionis</title>
+    <link rel="icon" href="https://orionis.osoware.com/img/orionis_logo.ico">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root { --navy:#1f4e79; --navy-dark:#163a5c; --teal:#2ba6b5; --teal-soft:#e6f5f7; --orange:#f4a04a; --ink:#1e293b; --line:#dbe6ee; }
+        html { scroll-padding-top: 5rem; }
+        body { color: var(--ink); background: #f4f8fb; }
+        .nav-link { display:block; padding:.4rem .75rem; border-left:3px solid transparent; font-size:.85rem; color:#475569; border-radius:0 .375rem .375rem 0; }
+        .nav-link:hover { color:var(--navy); background:var(--teal-soft); border-left-color:var(--teal); }
+
+        .doc { line-height:1.7; }
+        .doc h2 { margin:3rem 0 1rem; padding:.6rem 1rem; font-size:1.5rem; font-weight:700; color:#fff; border-radius:.6rem; background:linear-gradient(90deg,var(--navy),var(--teal)); border-bottom:4px solid var(--orange); }
+        .doc h3 { margin:2rem 0 .75rem; padding-left:.75rem; font-size:1.25rem; font-weight:700; color:var(--navy); border-left:5px solid var(--teal); }
+        .doc h4 { margin:1.4rem 0 .5rem; font-size:1rem; font-weight:700; color:var(--teal); text-transform:uppercase; letter-spacing:.04em; }
+        .doc p { margin:.75rem 0; }
+        .doc ul, .doc ol { margin:.75rem 0; padding-left:1.5rem; }
+        .doc ul { list-style:disc; } .doc ol { list-style:decimal; }
+        .doc li { margin:.25rem 0; } .doc li::marker { color:var(--teal); font-weight:700; }
+        .doc a { color:var(--teal); font-weight:600; text-decoration:underline; text-underline-offset:2px; }
+        .doc a:hover { color:var(--navy); }
+        .doc a[id] { display:block; height:0; }
+        .doc hr { margin:2.5rem 0; border:0; border-top:2px dashed var(--line); }
+        .doc strong { color:var(--navy-dark); }
+        .doc blockquote { margin:1rem 0; padding:1rem 1.25rem; background:#fff; border:1px solid var(--line); border-left:5px solid var(--orange); border-radius:.6rem; }
+        .doc code { font-family:ui-monospace,Menlo,Consolas,monospace; font-size:.85em; padding:.1rem .4rem; border-radius:.3rem; background:var(--teal-soft); color:var(--navy); }
+        .doc pre { margin:1rem 0; padding:1rem 1.25rem; overflow-x:auto; border-radius:.7rem; background:#102a43; border-top:3px solid var(--teal); box-shadow:0 4px 14px rgba(31,78,121,.18); }
+        .doc pre code { padding:0; background:transparent; color:#d9ecf2; font-size:.82rem; line-height:1.55; }
+        .doc .tabla { margin:1rem 0; overflow-x:auto; border:1px solid var(--line); border-radius:.7rem; background:#fff; }
+        .doc table { width:100%; border-collapse:collapse; font-size:.85rem; }
+        .doc th { padding:.6rem .8rem; text-align:left; color:#fff; background:var(--navy); white-space:nowrap; }
+        .doc td { padding:.55rem .8rem; border-top:1px solid var(--line); vertical-align:top; }
+        .doc tbody tr:nth-child(even) { background:#f4f8fb; }
+        .doc tbody tr:hover { background:var(--teal-soft); }
+        .verb { display:inline-block; padding:.05rem .5rem; border-radius:.3rem; font-family:ui-monospace,Consolas,monospace; font-size:.8rem; font-weight:700; color:#fff; background:var(--teal); }
+        .status { font-weight:700; }
+        .status-2 { background:#dcfce7; color:#166534; }
+        .status-4 { background:#fff1de; color:#b45309; }
+        .status-5 { background:#fee2e2; color:#991b1b; }
+        .doc h3 + p, .doc h3 + p + ul { }
+    </style>
+</head>
+<body class="antialiased">
+    <header class="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur">
+        <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-2">
+            <a href="https://orionis.osoware.com" class="flex items-center gap-2">
+                <img src="https://orionis.osoware.com/img/orionis-12.png" class="h-10" alt="Orionis">
+                <span class="hidden text-xs font-semibold uppercase tracking-wider text-[#2ba6b5] sm:inline">Manual de Endpoints</span>
+            </a>
+            <a href="https://orionis.osoware.com" class="rounded-full border border-[#1f4e79] px-4 py-1.5 text-xs font-semibold text-[#1f4e79] transition hover:bg-[#1f4e79] hover:text-white">&larr; Volver al inicio</a>
+        </div>
+    </header>
+
+    <section class="bg-gradient-to-r from-[#163a5c] via-[#1f4e79] to-[#2ba6b5]">
+        <div class="mx-auto max-w-7xl px-4 py-10 text-white">
+            <span class="inline-block rounded-full bg-[#f4a04a] px-3 py-1 text-xs font-bold text-[#163a5c]">API REST v1</span>
+            <h1 class="mt-3 text-3xl font-extrabold sm:text-4xl">Documentación Técnica de la API RESTful</h1>
+            <p class="mt-2 max-w-3xl text-teal-50">Sistema de Navegación, Guía y Georreferenciación Institucional y Urbana</p>
+        </div>
+    </section>
+
+    <div class="mx-auto flex max-w-7xl gap-8 px-4 py-8">
+        <aside class="hidden w-64 shrink-0 lg:block">
+            <nav class="sticky top-24 rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
+                <p class="mb-2 px-3 text-xs font-bold uppercase tracking-wider text-[#f4a04a]">Contenido</p>
+<a href="#seccion-1" class="nav-link">1. Visión General y Arquitectura</a>
+<a href="#seccion-2" class="nav-link">2. Convenciones Generales de la API</a>
+<a href="#seccion-3" class="nav-link">3. Catálogo de Endpoints</a>
+<a href="#seccion-4" class="nav-link">4. Guía de Georreferenciación y Navegación Móvil</a>
+<a href="#seccion-5" class="nav-link">5. Ejemplos de Implementación en Clientes Móviles</a>
+<a href="#seccion-6" class="nav-link">6. Almacenamiento Local Sugerido (SQLite y Alternativas Clave-Valor)</a>
+<a href="#seccion-7" class="nav-link">7. Despliegue y Adaptación a Otros Escenarios</a>
+<a href="#seguridad-cuotas-titulo" class="nav-link">8. Seguridad y Cuotas de Petición (Rate Limiting)</a>
+
+            </nav>
+        </aside>
+
+        <main class="min-w-0 flex-1">
+            <details class="mb-4 rounded-xl border border-slate-200 bg-white p-3 lg:hidden">
+                <summary class="cursor-pointer text-sm font-bold text-[#1f4e79]">Contenido del manual</summary>
+                <nav class="mt-2">
+<a href="#seccion-1" class="nav-link">1. Visión General y Arquitectura</a>
+<a href="#seccion-2" class="nav-link">2. Convenciones Generales de la API</a>
+<a href="#seccion-3" class="nav-link">3. Catálogo de Endpoints</a>
+<a href="#seccion-4" class="nav-link">4. Guía de Georreferenciación y Navegación Móvil</a>
+<a href="#seccion-5" class="nav-link">5. Ejemplos de Implementación en Clientes Móviles</a>
+<a href="#seccion-6" class="nav-link">6. Almacenamiento Local Sugerido (SQLite y Alternativas Clave-Valor)</a>
+<a href="#seccion-7" class="nav-link">7. Despliegue y Adaptación a Otros Escenarios</a>
+<a href="#seguridad-cuotas-titulo" class="nav-link">8. Seguridad y Cuotas de Petición (Rate Limiting)</a>
+
+                </nav>
+            </details>
+            <article class="doc rounded-2xl border border-slate-200 bg-white/60 p-4 shadow-sm sm:p-8">
+
+<blockquote>
+<p><strong>Versión de la API:</strong> <code>1.0.0</code><br />
+<strong>Prefijo Base:</strong> <code>/api/v1/</code><br />
+<strong>Formato de Intercambio:</strong> <code>JSON</code> (UTF-8)<br />
+<strong>Ámbito de Aplicación:</strong> Campus Universitarios, Centros Educativos, Parques Científicos, Complejos Hospitalarios y Centros Históricos Patrimoniales / Turísticos.</p>
+</blockquote>
+<hr />
+<h2 id="seccion-1">1. Visión General y Arquitectura</h2>
+<p>Esta API proporciona los servicios backend requeridos para nutrir aplicaciones móviles y clientes web que requieran orientación espacial, directorios informativos, búsqueda predictiva y geolocalización asistida en entornos delimitados.</p>
+<h3>1.1. Filosofía &quot;Offline-First&quot;</h3>
+<p>En campus universitarios extensos o cascos históricos, la conectividad celular o Wi-Fi puede ser inestable o inaccesible en sótanos, zonas arboladas o edificios antiguos de muros gruesos. Por ello, la arquitectura contempla un <strong>Endpoint de Sincronización Consolidada (<code>/api/v1/sincronizar</code>)</strong> diseñado para descargar en un único paquete JSON todo el inventario de datos activos (inmuebles, clasificaciones, palabras clave y polígonos/accesos GPS) e guardarlo en el almacenamiento local que el desarrollador elija (por ejemplo <strong>SQLite</strong>, <strong>Room / CoreData</strong> o almacenamiento clave-valor; ver <a href="#seccion-6">sección 6</a>). La aplicación puede funcionar con autonomía del 100% sin conexión a internet.</p>
+<h3>1.2. Adaptabilidad y Replicabilidad (Universidades y Centros Históricos)</h3>
+<p>El modelo de datos fue diseñado con un alto grado de abstracción que permite reutilizar el sistema en diversos contextos sin modificar la lógica interna:</p>
+<div class="tabla"><table>
+<thead>
+<tr>
+<th align="left">Concepto en el Sistema</th>
+<th align="left">Caso 1: Campus Universitario</th>
+<th align="left">Caso 2: Centro Histórico / Ciudad Turística</th>
+<th align="left">Caso 3: Complejo Hospitalario</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left"><strong>Edificio / Inmueble</strong></td>
+<td align="left">Edificio de Aulas, Laboratorio, Biblioteca</td>
+<td align="left">Monumento, Palacio, Iglesia, Museo, Plaza</td>
+<td align="left">Pabellón de Urgencias, Torre Médica, Laboratorio</td>
+</tr>
+<tr>
+<td align="left"><strong>Categoría</strong></td>
+<td align="left">Académico, Administrativo, Servicios</td>
+<td align="left">Religioso, Arquitectura Civil, Gastronomía</td>
+<td align="left">Consulta Externa, Terapia Intensiva, Farmacia</td>
+</tr>
+<tr>
+<td align="left"><strong>Dependencias</strong></td>
+<td align="left">Cubículos docentes, aulas magnas, sanitarios</td>
+<td align="left">Salas de exhibición, taquillas, miradores</td>
+<td align="left">Especialidades, quirófanos, salas de espera</td>
+</tr>
+<tr>
+<td align="left"><strong>Acceso Principal</strong></td>
+<td align="left">Puerta de acceso con torniquetes</td>
+<td align="left">Entrada peatonal principal / taquilla</td>
+<td align="left">Puerta principal de recepción</td>
+</tr>
+<tr>
+<td align="left"><strong>Accesos Secundarios</strong></td>
+<td align="left">Rampas de accesibilidad, puertas de servicio</td>
+<td align="left">Salidas de emergencia, patios traseros</td>
+<td align="left">Entrada de ambulancias, muelle de carga</td>
+</tr>
+<tr>
+<td align="left"><strong>Vértices Perímetro</strong></td>
+<td align="left">Esquinas del predio para geocercado pasivo</td>
+<td align="left">Límites de la plazoleta o manzana histórica</td>
+<td align="left">Cerco perimetral de la unidad médica</td>
+</tr>
+<tr>
+<td align="left"><strong>Etiquetas</strong></td>
+<td align="left">&quot;redes&quot;, &quot;titulación&quot;, &quot;impresiones&quot;</td>
+<td align="left">&quot;barroco&quot;, &quot;siglo xvii&quot;, &quot;artesanías&quot;</td>
+<td align="left">&quot;rayos x&quot;, &quot;pediatría&quot;, &quot;donación de sangre&quot;</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="seccion-2">2. Convenciones Generales de la API</h2>
+<h3>2.1. Encabezados HTTP (Headers)</h3>
+<h4>Encabezados Obligatorios en Solicitudes (Request Headers):</h4>
+<p>Toda solicitud efectuada a la API debe incluir los siguientes encabezados:</p>
+<pre><code class="language-http">Accept: application/json
+Content-Type: application/json
+</code></pre>
+<h4>Acceso Público (Sin Autenticación):</h4>
+<blockquote>
+<p>La versión actual del API es de <strong>consulta libre e institucional</strong>, diseñada para la práctica de aula. Todos los endpoints son de lectura pública: <strong>no requieren login, tokens Bearer ni encabezado <code>Authorization</code></strong>. Las peticiones son simples y directas.</p>
+</blockquote>
+<h4>Encabezados Opcionales en Solicitudes (Request Headers):</h4>
+<ul>
+<li><code>X-Device-Id</code> (<em>string</em>, opcional pero <strong>altamente recomendado</strong> en las prácticas de clase): Identificador único (UUID) del dispositivo móvil o cliente. Permite aislar el conteo de cuota de peticiones por dispositivo, de modo que los compañeros de aula que comparten la misma red Wi-Fi (misma IP pública / NAT) <strong>no compartan cuota</strong> entre sí. Si no se envía esta cabecera, la cuota se computa únicamente por la dirección IP del cliente (fallback).</li>
+</ul>
+<h4>Encabezados de Control en Respuestas (Response Headers automáticos de Laravel):</h4>
+<p>En todas las peticiones a la API v1, el servidor inyecta encabezados HTTP estandarizados informando el estado de la cuota:</p>
+<ul>
+<li><code>X-RateLimit-Limit</code>: Cantidad máxima de peticiones permitidas por ventana de tiempo (100 req/min por dispositivo, cuota unificada para todos los endpoints).</li>
+<li><code>X-RateLimit-Remaining</code>: Cantidad de peticiones restantes disponibles en la ventana actual de un minuto.</li>
+<li><code>Retry-After</code>: Cantidad de segundos de espera requeridos antes de volver a solicitar en caso de recibir un bloqueo HTTP 429.</li>
+</ul>
+<h3>2.2. Formato Estándar y Unificado de Respuestas JSON (Sección 7.1)</h3>
+<p>Todos los controladores retornan una envoltura estandarizada con código HTTP acorde:</p>
+<h4>A. Respuesta para Colecciones o Listas (200 OK)</h4>
+<pre><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Mensaje descriptivo de la operación realizada&quot;,
+  &quot;data&quot;: [
+    { ... },
+    { ... }
+  ]
+}
+</code></pre>
+<h4>B. Respuesta para Registros Individuales u Objetos (200 OK)</h4>
+<pre><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Mensaje descriptivo de la operación realizada&quot;,
+  &quot;data&quot;: {
+    &quot;campo&quot;: &quot;valor&quot;
+  }
+}
+</code></pre>
+<h4>C. Respuesta en Caso de Error o Validación (400, 404, 422, 500)</h4>
+<pre><code class="language-json">{
+  &quot;success&quot;: false,
+  &quot;message&quot;: &quot;Descripción comprensible del error ocurrido&quot;,
+  &quot;errors&quot;: null
+}
+</code></pre>
+<p><em>(En caso de error de validación <code>422 Unprocessable Entity</code>, el campo <code>errors</code> contiene un mapa de validaciones por atributo).</em></p>
+<h4>D. Respuesta en Caso de Límite de Cuota Excedido (429 Too Many Requests)</h4>
+<pre><code class="language-json">{
+  &quot;success&quot;: false,
+  &quot;data&quot;: null,
+  &quot;message&quot;: &quot;Límite de peticiones excedido (100 por minuto). Intente nuevamente en un minuto.&quot;
+}
+</code></pre>
+<hr />
+<h2 id="seccion-3">3. Catálogo de Endpoints</h2>
+<p><a id="indice-endpoints"></a></p>
+<h3>Índice de Endpoints</h3>
+<p>Todos los endpoints usan el prefijo <code>/api/v1</code>, son de solo lectura (<span class="verb verb-GET">GET</span>) y de acceso público. Haz clic en el nombre para ir a su descripción.</p>
+<div class="tabla"><table>
+<thead>
+<tr>
+<th align="left">#</th>
+<th align="left">Endpoint</th>
+<th align="left">Método</th>
+<th align="left">Ruta</th>
+<th align="left">Propósito</th>
+<th align="left">Límite</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left">3.1</td>
+<td align="left"><a href="#endpoint-sincronizar">Sincronización Offline</a></td>
+<td align="left"><span class="verb verb-GET">GET</span></td>
+<td align="left"><code>/api/v1/sincronizar</code></td>
+<td align="left">Descarga completa del catálogo para SQLite local</td>
+<td align="left">100/min</td>
+</tr>
+<tr>
+<td align="left">3.2</td>
+<td align="left"><a href="#endpoint-edificios">Listado de Edificios</a></td>
+<td align="left"><span class="verb verb-GET">GET</span></td>
+<td align="left"><code>/api/v1/edificios</code></td>
+<td align="left">Lista resumida con filtros <code>categoria</code> y <code>search</code></td>
+<td align="left">100/min</td>
+</tr>
+<tr>
+<td align="left">3.3</td>
+<td align="left"><a href="#endpoint-edificio-detalle">Ficha de Edificio</a></td>
+<td align="left"><span class="verb verb-GET">GET</span></td>
+<td align="left"><code>/api/v1/edificios/{id}</code></td>
+<td align="left">Ficha completa con etiquetas y accesos</td>
+<td align="left">100/min</td>
+</tr>
+<tr>
+<td align="left">3.4</td>
+<td align="left"><a href="#endpoint-accesos">Accesos GPS de un Edificio</a></td>
+<td align="left"><span class="verb verb-GET">GET</span></td>
+<td align="left"><code>/api/v1/edificios/{id}/accesos</code></td>
+<td align="left">Coordenadas de entradas y perímetro</td>
+<td align="left">100/min</td>
+</tr>
+<tr>
+<td align="left">3.5</td>
+<td align="left"><a href="#endpoint-categorias">Categorías</a></td>
+<td align="left"><span class="verb verb-GET">GET</span></td>
+<td align="left"><code>/api/v1/categorias</code></td>
+<td align="left">Filtros del directorio móvil</td>
+<td align="left">100/min</td>
+</tr>
+<tr>
+<td align="left">3.6</td>
+<td align="left"><a href="#endpoint-etiquetas">Etiquetas</a></td>
+<td align="left"><span class="verb verb-GET">GET</span></td>
+<td align="left"><code>/api/v1/etiquetas</code></td>
+<td align="left">Autocompletado de búsqueda</td>
+<td align="left">100/min</td>
+</tr>
+<tr>
+<td align="left">3.7</td>
+<td align="left"><a href="#endpoint-sincronizar-v2">Sincronización Offline v2</a></td>
+<td align="left"><span class="verb verb-GET">GET</span></td>
+<td align="left"><code>/api/v1/sincronizar_v2</code></td>
+<td align="left">Catálogo compacto (etiquetas planas, perímetro y coordenada central)</td>
+<td align="left">100/min</td>
+</tr>
+<tr>
+<td align="left">3.8</td>
+<td align="left"><a href="#endpoint-ultima-actualizacion">Última Actualización</a></td>
+<td align="left"><span class="verb verb-GET">GET</span></td>
+<td align="left"><code>/api/v1/ultima_actualizacion</code></td>
+<td align="left">Verificación ligera de versión del catálogo</td>
+<td align="left">100/min</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Guía rápida: ¿qué endpoint necesito?</strong></p>
+<ul>
+<li>Primer arranque de la app u actualización del catálogo local → <a href="#endpoint-sincronizar">3.1</a></li>
+<li>Mostrar o buscar edificios en línea → <a href="#endpoint-edificios">3.2</a></li>
+<li>Abrir la ficha de un edificio → <a href="#endpoint-edificio-detalle">3.3</a></li>
+<li>Apuntar la brújula hacia una entrada → <a href="#endpoint-accesos">3.4</a></li>
+<li>Pintar botones o pestañas de filtro → <a href="#endpoint-categorias">3.5</a></li>
+<li>Sugerencias mientras el usuario escribe → <a href="#endpoint-etiquetas">3.6</a></li>
+<li>Descargar el catálogo en formato compacto → <a href="#endpoint-sincronizar-v2">3.7</a></li>
+<li>Saber si hay datos nuevos sin descargar el catálogo → <a href="#endpoint-ultima-actualizacion">3.8</a></li>
+</ul>
+<p>Todos los endpoints pueden responder <code>429 Too Many Requests</code> (ver <a href="#seguridad-cuotas">sección 8</a>).</p>
+<hr />
+<p><a id="endpoint-sincronizar"></a></p>
+<h3>3.1. Sincronización Offline</h3>
+<p><a href="#indice-endpoints">↑ Volver al índice de endpoints</a></p>
+<p>Descarga el catálogo consolidado completo de todos los inmuebles activos junto con su categoría funcional anidada, su listado plano de etiquetas indexadas y su totalidad de coordenadas georreferenciadas (entradas y vértices perimetrales).</p>
+<ul>
+<li><strong>Método:</strong> <span class="verb verb-GET">GET</span></li>
+<li><strong>Ruta:</strong> <code>/api/v1/sincronizar</code></li>
+<li><strong>Autenticación:</strong> Pública (sin login ni tokens)</li>
+<li><strong>Protección de Tasa (Rate Limiting):</strong> <code>throttle:api-movil</code> (Máximo 100 peticiones/minuto por dispositivo: <code>X-Device-Id</code> + IP, o solo IP si no se envía el header)</li>
+<li><strong>Parámetros de Entrada:</strong> Ninguno</li>
+</ul>
+<h4>Códigos de Respuesta:</h4>
+<ul>
+<li><code class="status status-2">200 OK</code>: Operación exitosa.</li>
+<li><code class="status status-4">429 Too Many Requests</code>: Límite de peticiones excedido (más de 100 peticiones por minuto desde el mismo dispositivo).</li>
+</ul>
+<h4>Ejemplo de Petición (cURL):</h4>
+<pre><code class="language-bash">curl -X GET &quot;http://localhost/api/v1/sincronizar&quot; \
+     -H &quot;Accept: application/json&quot; \
+     -H &quot;X-Device-Id: 9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d&quot;
+</code></pre>
+<h4>Ejemplo de Respuesta Exitosa (<code>200 OK</code>):</h4>
+<pre><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;ultima_actualizacion&quot;: &quot;2026-11-10T19:45:00&quot;,
+  &quot;data&quot;: [
+    {
+      &quot;id&quot;: 1,
+      &quot;codigo&quot;: &quot;EDIF-A&quot;,
+      &quot;nombre&quot;: &quot;Edificio A - Aulas y Docencia&quot;,
+      &quot;descripcion&quot;: &quot;Edificio principal de tres niveles con aulas para cátedras magistrales y tutorías.&quot;,
+      &quot;dependencias&quot;: &quot;Dirección de Ingeniería, Aulas A1 a A12, Sanitarios Planta Baja.&quot;,
+      &quot;radio_cobertura&quot;: 20,
+      &quot;foto_url&quot;: &quot;http://localhost/storage/edificios/fotos/edificio_a.jpg&quot;,
+      &quot;url_video&quot;: &quot;http://localhost/storage/edificios/videos/recorrido_a.mp4&quot;,
+      &quot;categoria&quot;: {
+        &quot;id&quot;: 1,
+        &quot;nombre&quot;: &quot;Académico&quot;,
+        &quot;descripcion&quot;: &quot;Inmuebles destinados a la docencia, formación académica y laboratorios.&quot;
+      },
+      &quot;etiquetas&quot;: [
+        {
+          &quot;id&quot;: 1,
+          &quot;nombre&quot;: &quot;ingenieria&quot;
+        },
+        {
+          &quot;id&quot;: 2,
+          &quot;nombre&quot;: &quot;tutorias&quot;
+        }
+      ],
+      &quot;accesos&quot;: [
+        {
+          &quot;id&quot;: 1,
+          &quot;nombre&quot;: &quot;Acceso Principal Frontal&quot;,
+          &quot;latitud&quot;: 20.08123456,
+          &quot;longitud&quot;: -98.76123456,
+          &quot;tipo_punto&quot;: &quot;ENTRADA_PRINCIPAL&quot;,
+          &quot;es_principal&quot;: true
+        },
+        {
+          &quot;id&quot;: 2,
+          &quot;nombre&quot;: &quot;Rampa de Accesibilidad Sur&quot;,
+          &quot;latitud&quot;: 20.08134567,
+          &quot;longitud&quot;: -98.76134567,
+          &quot;tipo_punto&quot;: &quot;ENTRADA_SECUNDARIA&quot;,
+          &quot;es_principal&quot;: false
+        },
+        {
+          &quot;id&quot;: 3,
+          &quot;nombre&quot;: &quot;Vértice Norponiente&quot;,
+          &quot;latitud&quot;: 20.08145678,
+          &quot;longitud&quot;: -98.76145678,
+          &quot;tipo_punto&quot;: &quot;PERIMETRO&quot;,
+          &quot;es_principal&quot;: false
+        }
+      ]
+    }
+  ],
+  &quot;message&quot;: &quot;Catálogo consolidado de sincronización offline obtenido exitosamente&quot;
+}
+</code></pre>
+<h4>Descripción de Campos Raíz:</h4>
+<div class="tabla"><table>
+<thead>
+<tr>
+<th align="left">Campo</th>
+<th align="left">Tipo</th>
+<th align="left">Descripción</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left"><code>success</code></td>
+<td align="left">Booleano</td>
+<td align="left"><code>true</code> si la operación fue exitosa.</td>
+</tr>
+<tr>
+<td align="left"><code>ultima_actualizacion</code></td>
+<td align="left">Texto (<code>YYYY-MM-DDTHH:MM:SS</code>) o <code>null</code></td>
+<td align="left">Fecha y hora más reciente (<code>MAX</code> de <code>creado_en</code> / <code>actualizado_en</code>) entre <code>categorias</code>, <code>edificios</code>, <code>edificios_coordenadas_gps</code> y <code>etiquetas</code> (la relación <code>edificio_etiqueta</code> se refleja en <code>edificios</code>). Ninguna tabla usa <code>deleted_at</code>: la baja lógica de edificios (<code>activo</code>) actualiza <code>actualizado_en</code>. Es <code>null</code> si no existen registros.</td>
+</tr>
+<tr>
+<td align="left"><code>data</code></td>
+<td align="left">Arreglo</td>
+<td align="left">Catálogo consolidado de edificios activos.</td>
+</tr>
+<tr>
+<td align="left"><code>message</code></td>
+<td align="left">Texto</td>
+<td align="left">Mensaje descriptivo de la operación.</td>
+</tr>
+</tbody>
+</table></div>
+<h4>Flujo Recomendado para el Cliente Móvil:</h4>
+<ol>
+<li>La app almacena localmente la marca de tiempo de su última descarga exitosa (<code>campus_ultima_sincronizacion</code>).</li>
+<li>Al consultar el endpoint, compara <code>ultima_actualizacion</code> con <code>campus_ultima_sincronizacion</code>.</li>
+<li>Si el valor del servidor es <strong>posterior</strong> al local, persiste/sobrescribe los datos locales (SQLite, SharedPreferences o DataStore) y actualiza <code>campus_ultima_sincronizacion</code>.</li>
+<li>Si no es posterior, conserva los datos locales sin modificarlos.</li>
+</ol>
+<h4>Ejemplo de Respuesta de Bloqueo (<code>429 Too Many Requests</code>):</h4>
+<pre><code class="language-json">{
+  &quot;success&quot;: false,
+  &quot;data&quot;: null,
+  &quot;message&quot;: &quot;Límite de peticiones excedido (100 por minuto). Intente nuevamente en un minuto.&quot;
+}
+</code></pre>
+<hr />
+<p><a id="endpoint-edificios"></a></p>
+<h3>3.2. Listado Resumido de Edificios</h3>
+<p><a href="#indice-endpoints">↑ Volver al índice de endpoints</a></p>
+<p>Obtiene la colección de edificios activos en formato resumido optimizado para renderizar listas, tarjetas y visualizaciones rápidas en el explorador móvil. Permite filtrar por clasificación funcional o buscar palabras clave.</p>
+<ul>
+<li><strong>Método:</strong> <span class="verb verb-GET">GET</span></li>
+<li><strong>Ruta:</strong> <code>/api/v1/edificios</code></li>
+<li><strong>Autenticación:</strong> Pública (sin login ni tokens)</li>
+<li><strong>Protección de Tasa (Rate Limiting):</strong> <code>throttle:api-movil</code> (Máximo 100 peticiones/minuto por dispositivo: <code>X-Device-Id</code> + IP, o solo IP si no se envía el header)</li>
+</ul>
+<h4>Parámetros de Consulta (Query Params):</h4>
+<div class="tabla"><table>
+<thead>
+<tr>
+<th align="left">Parámetro</th>
+<th align="left">Tipo</th>
+<th align="left">Requerido</th>
+<th align="left">Descripción</th>
+<th align="left">Ejemplo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left"><code>categoria</code></td>
+<td align="left">Entero</td>
+<td align="left">Opcional</td>
+<td align="left">Identificador único de la categoría para filtrar el catálogo.</td>
+<td align="left"><code>?categoria=1</code></td>
+</tr>
+<tr>
+<td align="left"><code>search</code></td>
+<td align="left">Texto</td>
+<td align="left">Opcional</td>
+<td align="left">Término predictivo de búsqueda. Busca coincidencias parciales en: nombre, código, dependencias y etiquetas asignadas.</td>
+<td align="left"><code>?search=redes</code></td>
+</tr>
+</tbody>
+</table></div>
+<h4>Códigos de Respuesta:</h4>
+<ul>
+<li><code class="status status-2">200 OK</code>: Operación exitosa.</li>
+<li><code class="status status-4">429 Too Many Requests</code>: Límite de peticiones excedido (más de 100 peticiones por minuto desde el mismo dispositivo).</li>
+</ul>
+<h4>Ejemplo de Petición (cURL):</h4>
+<pre><code class="language-bash">curl -X GET &quot;http://localhost/api/v1/edificios?categoria=1&amp;search=computo&quot; \
+     -H &quot;Accept: application/json&quot; \
+     -H &quot;X-Device-Id: 9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d&quot;
+</code></pre>
+<h4>Ejemplo de Respuesta Exitosa (<code>200 OK</code>):</h4>
+<pre><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Listado de edificios activos obtenido exitosamente&quot;,
+  &quot;data&quot;: [
+    {
+      &quot;id&quot;: 2,
+      &quot;codigo&quot;: &quot;EDIF-K&quot;,
+      &quot;nombre&quot;: &quot;Edificio K - Ciencias de la Computación&quot;,
+      &quot;foto_url&quot;: &quot;http://localhost/storage/edificios/fotos/edificio_k.jpg&quot;,
+      &quot;categoria&quot;: {
+        &quot;id&quot;: 1,
+        &quot;nombre&quot;: &quot;Académico&quot;,
+        &quot;descripcion&quot;: &quot;Inmuebles destinados a la docencia, formación académica y laboratorios.&quot;
+      }
+    }
+  ]
+}
+</code></pre>
+<h4>Ejemplo de Respuesta de Bloqueo (<code>429 Too Many Requests</code>):</h4>
+<pre><code class="language-json">{
+  &quot;success&quot;: false,
+  &quot;data&quot;: null,
+  &quot;message&quot;: &quot;Límite de peticiones excedido (100 por minuto). Intente nuevamente en un minuto.&quot;
+}
+</code></pre>
+<hr />
+<p><a id="endpoint-edificio-detalle"></a></p>
+<h3>3.3. Ficha Informativa Completa de Edificio</h3>
+<p><a href="#indice-endpoints">↑ Volver al índice de endpoints</a></p>
+<p>Obtiene la ficha técnica y multimedia completa de un inmueble activo específico. Incluye descripción pormenorizada, dependencias, radio perimetral de geocerca en metros, enlaces multimedia, su categoría, sus etiquetas y el arreglo íntegro de accesos y vértices.</p>
+<ul>
+<li><strong>Método:</strong> <span class="verb verb-GET">GET</span></li>
+<li><strong>Ruta:</strong> <code>/api/v1/edificios/{id}</code></li>
+<li><strong>Autenticación:</strong> Pública (sin login ni tokens)</li>
+<li><strong>Protección de Tasa (Rate Limiting):</strong> <code>throttle:api-movil</code> (Máximo 100 peticiones/minuto por dispositivo: <code>X-Device-Id</code> + IP, o solo IP si no se envía el header)</li>
+</ul>
+<h4>Parámetros de Ruta:</h4>
+<div class="tabla"><table>
+<thead>
+<tr>
+<th align="left">Parámetro</th>
+<th align="left">Tipo</th>
+<th align="left">Requerido</th>
+<th align="left">Descripción</th>
+<th align="left">Ejemplo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left"><code>id</code></td>
+<td align="left">Entero</td>
+<td align="left">Requerido</td>
+<td align="left">Identificador numérico del edificio en la base de datos.</td>
+<td align="left"><code>/api/v1/edificios/2</code></td>
+</tr>
+</tbody>
+</table></div>
+<h4>Códigos de Respuesta:</h4>
+<ul>
+<li><code class="status status-2">200 OK</code>: Registro localizado exitosamente.</li>
+<li><code class="status status-4">404 Not Found</code>: El edificio no existe o se encuentra inactivo (baja lógica).</li>
+<li><code class="status status-4">429 Too Many Requests</code>: Límite de peticiones excedido (más de 100 peticiones por minuto desde el mismo dispositivo).</li>
+</ul>
+<h4>Ejemplo de Petición (cURL):</h4>
+<pre><code class="language-bash">curl -X GET &quot;http://localhost/api/v1/edificios/2&quot; \
+     -H &quot;Accept: application/json&quot; \
+     -H &quot;X-Device-Id: 9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d&quot;
+</code></pre>
+<h4>Ejemplo de Respuesta Exitosa (<code>200 OK</code>):</h4>
+<pre><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Ficha informativa del edificio obtenida exitosamente&quot;,
+  &quot;data&quot;: {
+    &quot;id&quot;: 2,
+    &quot;codigo&quot;: &quot;EDIF-K&quot;,
+    &quot;nombre&quot;: &quot;Edificio K - Ciencias de la Computación&quot;,
+    &quot;descripcion&quot;: &quot;Centro de cómputo avanzado, laboratorios de redes Cisco y talleres de desarrollo de software.&quot;,
+    &quot;dependencias&quot;: &quot;Departamento de Informática, Servidores Centrales, Laboratorios K1 a K4, Cubículos de Asesoría.&quot;,
+    &quot;radio_cobertura&quot;: 20,
+    &quot;foto_url&quot;: &quot;http://localhost/storage/edificios/fotos/edificio_k.jpg&quot;,
+    &quot;url_video&quot;: &quot;https://www.youtube.com/watch?v=ejemplo_video&quot;,
+    &quot;categoria&quot;: {
+      &quot;id&quot;: 1,
+      &quot;nombre&quot;: &quot;Académico&quot;,
+      &quot;descripcion&quot;: &quot;Inmuebles destinados a la docencia, formación académica y laboratorios.&quot;
+    },
+    &quot;etiquetas&quot;: [
+      {
+        &quot;id&quot;: 3,
+        &quot;nombre&quot;: &quot;redes&quot;
+      },
+      {
+        &quot;id&quot;: 4,
+        &quot;nombre&quot;: &quot;software&quot;
+      }
+    ],
+    &quot;accesos&quot;: [
+      {
+        &quot;id&quot;: 4,
+        &quot;nombre&quot;: &quot;Entrada Principal Frontal&quot;,
+        &quot;latitud&quot;: 20.08210000,
+        &quot;longitud&quot;: -98.76210000,
+        &quot;tipo_punto&quot;: &quot;ENTRADA_PRINCIPAL&quot;,
+        &quot;es_principal&quot;: true
+      },
+      {
+        &quot;id&quot;: 5,
+        &quot;nombre&quot;: &quot;Acceso a Laboratorio K4&quot;,
+        &quot;latitud&quot;: 20.08220000,
+        &quot;longitud&quot;: -98.76220000,
+        &quot;tipo_punto&quot;: &quot;ENTRADA_SECUNDARIA&quot;,
+        &quot;es_principal&quot;: false
+      }
+    ]
+  }
+}
+</code></pre>
+<h4>Ejemplo de Respuesta de Error (<code>404 Not Found</code>):</h4>
+<pre><code class="language-json">{
+  &quot;success&quot;: false,
+  &quot;message&quot;: &quot;Edificio no encontrado o no disponible&quot;,
+  &quot;errors&quot;: null
+}
+</code></pre>
+<h4>Ejemplo de Respuesta de Bloqueo (<code>429 Too Many Requests</code>):</h4>
+<pre><code class="language-json">{
+  &quot;success&quot;: false,
+  &quot;data&quot;: null,
+  &quot;message&quot;: &quot;Límite de peticiones excedido (100 por minuto). Intente nuevamente en un minuto.&quot;
+}
+</code></pre>
+<hr />
+<p><a id="endpoint-accesos"></a></p>
+<h3>3.4. Accesos GPS y Coordenadas de un Edificio</h3>
+<p><a href="#indice-endpoints">↑ Volver al índice de endpoints</a></p>
+<p>Recupera los puntos georreferenciados asociados a un inmueble. Permite discriminar entre accesos transitables y vértices perimetrales para alimentar la brújula y los motores de guiado.</p>
+<ul>
+<li><strong>Método:</strong> <span class="verb verb-GET">GET</span></li>
+<li><strong>Ruta:</strong> <code>/api/v1/edificios/{id}/accesos</code></li>
+<li><strong>Autenticación:</strong> Pública (sin login ni tokens)</li>
+<li><strong>Protección de Tasa (Rate Limiting):</strong> <code>throttle:api-movil</code> (Máximo 100 peticiones/minuto por dispositivo: <code>X-Device-Id</code> + IP, o solo IP si no se envía el header)</li>
+</ul>
+<h4>Parámetros:</h4>
+<div class="tabla"><table>
+<thead>
+<tr>
+<th align="left">Parámetro</th>
+<th align="left">Tipo</th>
+<th align="left">Ubicación</th>
+<th align="left">Requerido</th>
+<th align="left">Descripción</th>
+<th align="left">Ejemplo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left"><code>id</code></td>
+<td align="left">Entero</td>
+<td align="left">Ruta</td>
+<td align="left">Requerido</td>
+<td align="left">Identificador único del edificio.</td>
+<td align="left"><code>/api/v1/edificios/2/accesos</code></td>
+</tr>
+<tr>
+<td align="left"><code>solo_entradas</code></td>
+<td align="left">Booleano</td>
+<td align="left">Query</td>
+<td align="left">Opcional</td>
+<td align="left">Si es <code>true</code>, filtra y retorna únicamente accesos peatonales (<code>ENTRADA_PRINCIPAL</code> y <code>ENTRADA_SECUNDARIA</code>), descartando los vértices de geocerca perimetral (<code>PERIMETRO</code>). Esencial para orientar la aguja de la brújula.</td>
+<td align="left"><code>?solo_entradas=true</code></td>
+</tr>
+</tbody>
+</table></div>
+<h4>Códigos de Respuesta:</h4>
+<ul>
+<li><code class="status status-2">200 OK</code>: Coordenadas recuperadas con éxito.</li>
+<li><code class="status status-4">404 Not Found</code>: El edificio especificado no existe o está inactivo.</li>
+<li><code class="status status-4">429 Too Many Requests</code>: Límite de peticiones excedido (más de 100 peticiones por minuto desde el mismo dispositivo).</li>
+</ul>
+<h4>Ejemplo de Petición para Modo Brújula (cURL):</h4>
+<pre><code class="language-bash">curl -X GET &quot;http://localhost/api/v1/edificios/2/accesos?solo_entradas=true&quot; \
+     -H &quot;Accept: application/json&quot; \
+     -H &quot;X-Device-Id: 9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d&quot;
+</code></pre>
+<h4>Ejemplo de Respuesta Exitosa (<code>200 OK</code>):</h4>
+<pre><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Accesos GPS del edificio obtenidos exitosamente&quot;,
+  &quot;data&quot;: [
+    {
+      &quot;id&quot;: 4,
+      &quot;nombre&quot;: &quot;Entrada Principal Frontal&quot;,
+      &quot;latitud&quot;: 20.08210000,
+      &quot;longitud&quot;: -98.76210000,
+      &quot;tipo_punto&quot;: &quot;ENTRADA_PRINCIPAL&quot;,
+      &quot;es_principal&quot;: true
+    },
+    {
+      &quot;id&quot;: 5,
+      &quot;nombre&quot;: &quot;Acceso a Laboratorio K4&quot;,
+      &quot;latitud&quot;: 20.08220000,
+      &quot;longitud&quot;: -98.76220000,
+      &quot;tipo_punto&quot;: &quot;ENTRADA_SECUNDARIA&quot;,
+      &quot;es_principal&quot;: false
+    }
+  ]
+}
+</code></pre>
+<h4>Ejemplo de Respuesta de Bloqueo (<code>429 Too Many Requests</code>):</h4>
+<pre><code class="language-json">{
+  &quot;success&quot;: false,
+  &quot;data&quot;: null,
+  &quot;message&quot;: &quot;Límite de peticiones excedido (100 por minuto). Intente nuevamente en un minuto.&quot;
+}
+</code></pre>
+<hr />
+<p><a id="endpoint-categorias"></a></p>
+<h3>3.5. Catálogo de Categorías</h3>
+<p><a href="#indice-endpoints">↑ Volver al índice de endpoints</a></p>
+<p>Proporciona la lista simple de todas las clasificaciones funcionales de inmuebles registradas en la base de datos. Está diseñado específicamente para construir pestañas (<code>Tabs</code>), carruseles o botones de filtrado en el cliente móvil.</p>
+<ul>
+<li><strong>Método:</strong> <span class="verb verb-GET">GET</span></li>
+<li><strong>Ruta:</strong> <code>/api/v1/categorias</code></li>
+<li><strong>Autenticación:</strong> Pública (sin login ni tokens)</li>
+<li><strong>Protección de Tasa (Rate Limiting):</strong> <code>throttle:api-movil</code> (Máximo 100 peticiones/minuto por dispositivo: <code>X-Device-Id</code> + IP, o solo IP si no se envía el header)</li>
+<li><strong>Parámetros de Entrada:</strong> Ninguno</li>
+</ul>
+<h4>Códigos de Respuesta:</h4>
+<ul>
+<li><code class="status status-2">200 OK</code>: Operación exitosa.</li>
+<li><code class="status status-4">429 Too Many Requests</code>: Límite de peticiones excedido (más de 100 peticiones por minuto desde el mismo dispositivo).</li>
+</ul>
+<h4>Ejemplo de Petición (cURL):</h4>
+<pre><code class="language-bash">curl -X GET &quot;http://localhost/api/v1/categorias&quot; \
+     -H &quot;Accept: application/json&quot; \
+     -H &quot;X-Device-Id: 9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d&quot;
+</code></pre>
+<h4>Ejemplo de Respuesta Exitosa (<code>200 OK</code>):</h4>
+<pre><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Listado de categorías obtenido exitosamente&quot;,
+  &quot;data&quot;: [
+    {
+      &quot;id&quot;: 1,
+      &quot;nombre&quot;: &quot;Académico&quot;
+    },
+    {
+      &quot;id&quot;: 2,
+      &quot;nombre&quot;: &quot;Administrativo&quot;
+    },
+    {
+      &quot;id&quot;: 3,
+      &quot;nombre&quot;: &quot;Servicios y Recreación&quot;
+    }
+  ]
+}
+</code></pre>
+<h4>Ejemplo de Respuesta de Bloqueo (<code>429 Too Many Requests</code>):</h4>
+<pre><code class="language-json">{
+  &quot;success&quot;: false,
+  &quot;data&quot;: null,
+  &quot;message&quot;: &quot;Límite de peticiones excedido (100 por minuto). Intente nuevamente en un minuto.&quot;
+}
+</code></pre>
+<hr />
+<p><a id="endpoint-etiquetas"></a></p>
+<h3>3.6. Catálogo y Búsqueda Predictiva de Etiquetas</h3>
+<p><a href="#indice-endpoints">↑ Volver al índice de endpoints</a></p>
+<p>Ofrece el inventario plano de palabras clave registradas para asistir el autocompletado en la barra de búsqueda de la aplicación móvil en tiempo real.</p>
+<ul>
+<li><strong>Método:</strong> <span class="verb verb-GET">GET</span></li>
+<li><strong>Ruta:</strong> <code>/api/v1/etiquetas</code></li>
+<li><strong>Autenticación:</strong> Pública (sin login ni tokens)</li>
+<li><strong>Protección de Tasa (Rate Limiting):</strong> <code>throttle:api-movil</code> (Máximo 100 peticiones/minuto por dispositivo: <code>X-Device-Id</code> + IP, o solo IP si no se envía el header)</li>
+</ul>
+<h4>Parámetros de Consulta (Query Params):</h4>
+<div class="tabla"><table>
+<thead>
+<tr>
+<th align="left">Parámetro</th>
+<th align="left">Tipo</th>
+<th align="left">Requerido</th>
+<th align="left">Descripción</th>
+<th align="left">Ejemplo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left"><code>search</code></td>
+<td align="left">Texto</td>
+<td align="left">Opcional</td>
+<td align="left">Prefijo o subcadena para filtrar palabras clave al escribir en el buscador.</td>
+<td align="left"><code>?search=lab</code></td>
+</tr>
+</tbody>
+</table></div>
+<h4>Códigos de Respuesta:</h4>
+<ul>
+<li><code class="status status-2">200 OK</code>: Operación exitosa.</li>
+<li><code class="status status-4">429 Too Many Requests</code>: Límite de peticiones excedido (más de 100 peticiones por minuto desde el mismo dispositivo).</li>
+</ul>
+<h4>Ejemplo de Petición (cURL):</h4>
+<pre><code class="language-bash">curl -X GET &quot;http://localhost/api/v1/etiquetas?search=red&quot; \
+     -H &quot;Accept: application/json&quot; \
+     -H &quot;X-Device-Id: 9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d&quot;
+</code></pre>
+<h4>Ejemplo de Respuesta Exitosa (<code>200 OK</code>):</h4>
+<pre><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Listado de etiquetas obtenido exitosamente&quot;,
+  &quot;data&quot;: [
+    {
+      &quot;id&quot;: 3,
+      &quot;nombre&quot;: &quot;redes&quot;
+    },
+    {
+      &quot;id&quot;: 7,
+      &quot;nombre&quot;: &quot;redes inalambricas&quot;
+    }
+  ]
+}
+</code></pre>
+<h4>Ejemplo de Respuesta de Bloqueo (<code>429 Too Many Requests</code>):</h4>
+<pre><code class="language-json">{
+  &quot;success&quot;: false,
+  &quot;data&quot;: null,
+  &quot;message&quot;: &quot;Límite de peticiones excedido (100 por minuto). Intente nuevamente en un minuto.&quot;
+}
+</code></pre>
+<hr />
+<p><a id="endpoint-sincronizar-v2"></a></p>
+<h3>3.7. Sincronización Offline v2 (Formato Compacto)</h3>
+<p><a href="#indice-endpoints">↑ Volver al índice de endpoints</a></p>
+<p>Descarga el mismo catálogo de inmuebles activos que <code>/api/v1/sincronizar</code> pero en un formato más compacto y listo para usar: etiquetas como arreglo plano de textos, coordenada central precalculada, accesos peatonales separados y el perímetro como lista ordenada de pares <code>[latitud, longitud]</code>.</p>
+<ul>
+<li><strong>Método:</strong> <span class="verb verb-GET">GET</span></li>
+<li><strong>Ruta:</strong> <code>/api/v1/sincronizar_v2</code></li>
+<li><strong>Autenticación:</strong> Pública (sin login ni tokens)</li>
+<li><strong>Protección de Tasa (Rate Limiting):</strong> <code>throttle:api-movil</code> (Máximo 100 peticiones/minuto por dispositivo: <code>X-Device-Id</code> + IP, o solo IP si no se envía el header)</li>
+<li><strong>Parámetros de Entrada:</strong> Ninguno</li>
+</ul>
+<h4>Códigos de Respuesta:</h4>
+<ul>
+<li><code class="status status-2">200 OK</code>: Operación exitosa.</li>
+<li><code class="status status-4">429 Too Many Requests</code>: Límite de peticiones excedido (más de 100 peticiones por minuto desde el mismo dispositivo).</li>
+</ul>
+<h4>Ejemplo de Petición (cURL):</h4>
+<pre><code class="language-bash">curl -X GET &quot;http://localhost/api/v1/sincronizar_v2&quot; \
+     -H &quot;Accept: application/json&quot; \
+     -H &quot;X-Device-Id: 9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d&quot;
+</code></pre>
+<h4>Ejemplo de Respuesta Exitosa (<code>200 OK</code>):</h4>
+<pre><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;ultima_actualizacion&quot;: &quot;2026-11-10T19:45:00-07:00&quot;,
+  &quot;data&quot;: [
+    {
+      &quot;id&quot;: 1,
+      &quot;codigo&quot;: &quot;EDIF-A&quot;,
+      &quot;nombre&quot;: &quot;Edificio A - Aulas y Docencia&quot;,
+      &quot;descripcion&quot;: &quot;Edificio principal de tres niveles con aulas para cátedras magistrales y tutorías.&quot;,
+      &quot;dependencias&quot;: &quot;Dirección de Ingeniería, Aulas A1 a A12, Sanitarios Planta Baja.&quot;,
+      &quot;radio_cobertura&quot;: 20,
+      &quot;foto_url&quot;: &quot;http://localhost/storage/edificios/fotos/edificio_a.jpg&quot;,
+      &quot;url_video&quot;: &quot;http://localhost/storage/edificios/videos/recorrido_a.mp4&quot;,
+      &quot;categoria&quot;: {
+        &quot;id&quot;: 1,
+        &quot;nombre&quot;: &quot;Académico&quot;,
+        &quot;descripcion&quot;: &quot;Inmuebles destinados a la docencia, formación académica y laboratorios.&quot;
+      },
+      &quot;etiquetas&quot;: [&quot;ingenieria&quot;, &quot;tutorias&quot;],
+      &quot;coordenada_central&quot;: {
+        &quot;latitud&quot;: 20.08123456,
+        &quot;longitud&quot;: -98.76123456
+      },
+      &quot;accesos&quot;: [
+        {
+          &quot;id&quot;: 1,
+          &quot;nombre&quot;: &quot;Acceso Principal Frontal&quot;,
+          &quot;latitud&quot;: 20.08123456,
+          &quot;longitud&quot;: -98.76123456,
+          &quot;tipo_punto&quot;: &quot;ENTRADA_PRINCIPAL&quot;,
+          &quot;es_principal&quot;: true
+        },
+        {
+          &quot;id&quot;: 2,
+          &quot;nombre&quot;: &quot;Rampa de Accesibilidad Sur&quot;,
+          &quot;latitud&quot;: 20.08134567,
+          &quot;longitud&quot;: -98.76134567,
+          &quot;tipo_punto&quot;: &quot;ENTRADA_SECUNDARIA&quot;,
+          &quot;es_principal&quot;: false
+        }
+      ],
+      &quot;perimetro&quot;: [
+        [20.08145678, -98.76145678],
+        [20.08148000, -98.76110000],
+        [20.08110000, -98.76110000],
+        [20.08110000, -98.76145678]
+      ]
+    }
+  ],
+  &quot;message&quot;: &quot;Catálogo consolidado de sincronización offline obtenido exitosamente&quot;
+}
+</code></pre>
+<h4>Reglas de Transformación de cada Registro en <code>data</code>:</h4>
+<div class="tabla"><table>
+<thead>
+<tr>
+<th align="left">Campo</th>
+<th align="left">Regla</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left"><code>ultima_actualizacion</code></td>
+<td align="left">Fecha más reciente del catálogo en formato ISO 8601 con zona horaria (<code>YYYY-MM-DDTHH:MM:SS±HH:MM</code>). <code>null</code> si no hay registros.</td>
+</tr>
+<tr>
+<td align="left"><code>etiquetas</code></td>
+<td align="left">Arreglo plano de textos (<code>["ingenieria", "tutorias"]</code>).</td>
+</tr>
+<tr>
+<td align="left"><code>coordenada_central</code></td>
+<td align="left">Objeto <code>{ "latitud", "longitud" }</code> tomado del acceso con <code>es_principal = true</code>; si no existe, el primer acceso; si no hay accesos, el promedio de las coordenadas disponibles. <code>null</code> si el edificio no tiene coordenadas.</td>
+</tr>
+<tr>
+<td align="left"><code>accesos</code></td>
+<td align="left">Solo puntos de acceso peatonal (<code>tipo_punto != 'PERIMETRO'</code>).</td>
+</tr>
+<tr>
+<td align="left"><code>perimetro</code></td>
+<td align="left">Solo vértices <code>PERIMETRO</code>, como lista ordenada de pares <code>[lat, lng]</code>. <code>[]</code> si no tiene polígono.</td>
+</tr>
+</tbody>
+</table></div>
+<h4>Ejemplo de Respuesta de Bloqueo (<code>429 Too Many Requests</code>):</h4>
+<pre><code class="language-json">{
+  &quot;success&quot;: false,
+  &quot;data&quot;: null,
+  &quot;message&quot;: &quot;Límite de peticiones excedido (100 por minuto). Intente nuevamente en un minuto.&quot;
+}
+</code></pre>
+<hr />
+<p><a id="endpoint-ultima-actualizacion"></a></p>
+<h3>3.8. Última Actualización del Catálogo (Verificación Ligera)</h3>
+<p><a href="#indice-endpoints">↑ Volver al índice de endpoints</a></p>
+<p>Devuelve únicamente la marca de tiempo más reciente de los catálogos del campus (<code>MAX</code> de <code>creado_en</code> / <code>actualizado_en</code> en <code>categorias</code>, <code>edificios</code>, <code>edificios_coordenadas_gps</code> y <code>etiquetas</code>; ninguna tabla usa <code>deleted_at</code>). Permite saber si hay que descargar datos sin transferir el payload de edificios.</p>
+<ul>
+<li><strong>Método:</strong> <span class="verb verb-GET">GET</span> <code class="status status-2">Verificación / Check Ligero</code></li>
+<li><strong>Ruta:</strong> <code>/api/v1/ultima_actualizacion</code></li>
+<li><strong>Autenticación:</strong> Pública (sin login ni tokens)</li>
+<li><strong>Protección de Tasa (Rate Limiting):</strong> <code>throttle:api-movil</code> (Máximo 100 peticiones/minuto por dispositivo: <code>X-Device-Id</code> + IP, o solo IP si no se envía el header)</li>
+<li><strong>Propósito:</strong> Verificación ligera de versión previa a la descarga completa.</li>
+<li><strong>Parámetros de Entrada:</strong> Ninguno</li>
+</ul>
+<h4>Flujo recomendado en la app móvil:</h4>
+<ol>
+<li>La app consulta <code>/api/v1/ultima_actualizacion</code>.</li>
+<li>Si <code>data</code> es igual a la marca de tiempo almacenada localmente (<code>SharedPreferences</code> / <code>DataStore</code> / <code>SQLite</code>), omite la descarga y conserva los datos locales.</li>
+<li>Si <code>data</code> es más reciente, consume <code>/api/v1/sincronizar_v2</code> o <code>/api/v1/sincronizar</code> y actualiza la marca local.</li>
+</ol>
+<blockquote>
+<p><strong>Ahorro de datos y batería:</strong> esta respuesta pesa unos pocos bytes, frente al catálogo completo de edificios. Consultarla antes de descargar evita transferencias y procesamiento innecesarios en el dispositivo.</p>
+</blockquote>
+<h4>Códigos de Respuesta:</h4>
+<ul>
+<li><code class="status status-2">200 OK</code>: Operación exitosa (<code>data</code> puede ser <code>null</code> si no existen registros).</li>
+<li><code class="status status-4">429 Too Many Requests</code>: Límite de peticiones excedido (más de 100 peticiones por minuto desde el mismo dispositivo).</li>
+<li><code class="status status-5">500 Internal Server Error</code>: Fallo al consultar la fecha; <code>data</code> viaja como <code>null</code>.</li>
+</ul>
+<h4>Ejemplo de Petición (cURL):</h4>
+<pre><code class="language-bash">curl -X GET &quot;http://localhost/api/v1/ultima_actualizacion&quot; \
+     -H &quot;Accept: application/json&quot; \
+     -H &quot;X-Device-Id: 9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d&quot;
+</code></pre>
+<h4>Ejemplo de Respuesta Exitosa (<code>200 OK</code>):</h4>
+<pre><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: &quot;2026-11-10T19:45:00-07:00&quot;,
+  &quot;message&quot;: &quot;Catálogo consolidado de sincronización offline obtenido exitosamente&quot;
+}
+</code></pre>
+<h4>Ejemplo de Respuesta con <code>data: null</code> (sin registros o error <code>500</code>):</h4>
+<pre><code class="language-json">{
+  &quot;success&quot;: false,
+  &quot;data&quot;: null,
+  &quot;message&quot;: &quot;Error al consultar la fecha de última actualización del catálogo&quot;
+}
+</code></pre>
+<hr />
+<h2 id="seccion-4">4. Guía de Georreferenciación y Navegación Móvil</h2>
+<p>Para asegurar una experiencia de navegación fluida y precisa, las aplicaciones consumidoras deben implementar los siguientes algoritmos basados en los datos provistos por la API:</p>
+<h3>4.1. Fórmula del Semiverseno (Haversine Distance)</h3>
+<p>
+    Para consultar la deducción matemática y la explicación de la fórmula del semiverseno (Haversine), puedes revisar los siguientes enlaces:
+</p>
+<ul>
+    <li>
+        <a href="https://es.wikipedia.org/wiki/F%C3%B3rmula_del_haversine" target="_blank" rel="noopener noreferrer">
+            Fórmula del haversine (Wikipedia en español)
+        </a>
+    </li>
+    <li>
+        <a href="https://es.planetcalc.com/7721/" target="_blank" rel="noopener noreferrer">
+            Calculadora y explicación de distancia con fórmula de Haversine (PLANETCALC en español)
+        </a>
+    </li>
+    <li>
+        <a href="https://www.geeksforgeeks.org/es/haversine-formula-to-find-distance-between-two-points-on-a-sphere/" target="_blank" rel="noopener noreferrer">
+            Fórmula de Haversine para encontrar la distancia entre dos puntos (GeeksforGeeks en español)
+        </a>
+    </li>
+</ul>
+<h3>4.2. Cálculo del Rumbo / Azimut (Bearing) para Modo Brújula</h3>
+<p>Para orientar la aguja de la brújula hacia la entrada principal (<code>ENTRADA_PRINCIPAL</code> donde <code>es_principal = true</code>):</p>
+<p>$$y = \sin(\Delta\text{lon}) \cdot \cos(\text{lat}_2)$$
+$$x = \cos(\text{lat}_1) \cdot \sin(\text{lat}_2) - \sin(\text{lat}_1) \cdot \cos(\text{lat}_2) \cdot \cos(\Delta\text{lon})$$
+$$\theta = \text{atan2}(y, x)$$
+$$\text{rumbo en grados} = (\theta \cdot 180 / \pi + 360) \pmod{360}$$</p>
+<h3>4.3. Geocercado Pasivo (Detección de Arribo)</h3>
+<p>Cada edificio define su propio <code>radio_cobertura</code> (por defecto $20$ metros). Cuando la distancia $d$ calculada mediante Haversine sea menor o igual al radio:
+$$d \le \text{radio_cobertura}$$
+La aplicación debe activar el estado de <strong>&quot;Ha llegado a su destino&quot;</strong> y desplegar de manera reactiva la ficha informativa con los servicios y dependencias del inmueble.</p>
+<hr />
+<h2 id="seccion-5">5. Ejemplos de Implementación en Clientes Móviles</h2>
+<h3>5.1. Implementación en Flutter / Dart (Consumo de Sincronización)</h3>
+<pre><code class="language-dart">import 'dart:convert';
+import 'package:http/http.dart' as http;
+
+Future&lt;void&gt; sincronizarCatalogo(String baseUrl) async {
+  final url = Uri.parse('$baseUrl/api/v1/sincronizar');
+  final response = await http.get(url, headers: {
+    'Accept': 'application/json',
+  });
+
+  if (response.statusCode == 200) {
+    final Map&lt;String, dynamic&gt; jsonResponse = jsonDecode(response.body);
+    if (jsonResponse['success'] == true) {
+      final List&lt;dynamic&gt; edificios = jsonResponse['data'];
+      // Insertar en base de datos local SQLite (sqflite)
+      for (var edif in edificios) {
+        await guardarEdificioEnSqlite(edif);
+      }
+      print('Sincronización completada: ${edificios.length} inmuebles guardados.');
+    }
+  } else {
+    throw Exception('Error al sincronizar catálogo: ${response.statusCode}');
+  }
+}
+</code></pre>
+<h3>5.2. Implementación en Kotlin / Android (Retrofit Service)</h3>
+<pre><code class="language-kotlin">import retrofit2.http.GET
+import retrofit2.http.Path
+import retrofit2.http.Query
+
+data class ApiResponse&lt;T&gt;(
+    val success: Boolean,
+    val message: String,
+    val data: T,
+    val errors: Map&lt;String, List&lt;String&gt;&gt;? = null
+)
+
+data class EdificioResumen(
+    val id: Long,
+    val codigo: String,
+    val nombre: String,
+    val foto_url: String?,
+    val categoria: CategoriaDto
+)
+
+data class CategoriaDto(
+    val id: Int,
+    val nombre: String,
+    val descripcion: String?
+)
+
+interface ApiCampusService {
+    @GET(&quot;api/v1/edificios&quot;)
+    suspend fun getEdificios(
+        @Query(&quot;categoria&quot;) categoriaId: Int? = null,
+        @Query(&quot;search&quot;) search: String? = null
+    ): ApiResponse&lt;List&lt;EdificioResumen&gt;&gt;
+
+    @GET(&quot;api/v1/edificios/{id}/accesos&quot;)
+    suspend fun getAccesosGps(
+        @Path(&quot;id&quot;) edificioId: Long,
+        @Query(&quot;solo_entradas&quot;) soloEntradas: Boolean = true
+    ): ApiResponse&lt;List&lt;AccesoGpsDto&gt;&gt;
+}
+</code></pre>
+<hr />
+<h2 id="seccion-6">6. Almacenamiento Local Sugerido (SQLite y Alternativas Clave-Valor)</h2>
+<blockquote>
+<p><strong>Importante:</strong> los endpoints que consume la aplicación móvil <strong>no exigen el uso de SQLite</strong> en el dispositivo. El almacenamiento local es una <strong>sugerencia arquitectónica opcional</strong>: cada desarrollador o plataforma puede elegir el medio que mejor se adapte (relacional o clave-valor ligero).</p>
+</blockquote>
+<h3>6.1. Opción A: SQLite (relacional, opcional)</h3>
+<p>Si se opta por una base de datos relacional, para almacenar los datos descargados en <code>/api/v1/sincronizar</code> se sugiere estructurar la base de datos local SQLite de la siguiente forma. Esta propuesta es <strong>solo una alternativa de persistencia</strong>, no un requisito para consumir el API.</p>
+<pre><code class="language-sql">-- Catálogo de Categorías
+CREATE TABLE IF NOT EXISTS local_categorias (
+    id INTEGER PRIMARY KEY,
+    nombre TEXT NOT NULL,
+    descripcion TEXT
+);
+
+-- Inmuebles / Edificios
+CREATE TABLE IF NOT EXISTS local_edificios (
+    id INTEGER PRIMARY KEY,
+    categoria_id INTEGER NOT NULL,
+    codigo TEXT UNIQUE NOT NULL,
+    nombre TEXT NOT NULL,
+    descripcion TEXT NOT NULL,
+    dependencias TEXT NOT NULL,
+    radio_cobertura INTEGER NOT NULL DEFAULT 20,
+    foto_url TEXT,
+    url_video TEXT,
+    FOREIGN KEY (categoria_id) REFERENCES local_categorias (id)
+);
+
+-- Puntos de Acceso y Vértices Georreferenciados
+CREATE TABLE IF NOT EXISTS local_accesos_gps (
+    id INTEGER PRIMARY KEY,
+    edificio_id INTEGER NOT NULL,
+    nombre TEXT NOT NULL,
+    latitud REAL NOT NULL,
+    longitud REAL NOT NULL,
+    tipo_punto TEXT NOT NULL,
+    es_principal INTEGER NOT NULL DEFAULT 0,
+    FOREIGN KEY (edificio_id) REFERENCES local_edificios (id) ON DELETE CASCADE
+);
+
+-- Etiquetas de Búsqueda
+CREATE TABLE IF NOT EXISTS local_etiquetas (
+    id INTEGER PRIMARY KEY,
+    nombre TEXT UNIQUE NOT NULL
+);
+
+-- Tabla Pivote Edificio - Etiqueta
+CREATE TABLE IF NOT EXISTS local_edificio_etiqueta (
+    edificio_id INTEGER NOT NULL,
+    etiqueta_id INTEGER NOT NULL,
+    PRIMARY KEY (edificio_id, etiqueta_id)
+);
+</code></pre>
+<h3>6.2. Opción B: Almacenamiento clave-valor (ligero, sin base de datos relacional)</h3>
+<p>Para apps que solo necesitan guardar el último catálogo descargado y su marca de tiempo, basta un mecanismo clave-valor simple:</p>
+<div class="tabla"><table>
+<thead>
+<tr>
+<th align="left">Plataforma</th>
+<th align="left">Mecanismos sugeridos</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left"><strong>Flutter</strong></td>
+<td align="left"><code>shared_preferences</code></td>
+</tr>
+<tr>
+<td align="left"><strong>Android (Kotlin)</strong></td>
+<td align="left"><code>SharedPreferences</code> / <code>DataStore</code> (Preferences DataStore)</td>
+</tr>
+<tr>
+<td align="left"><strong>iOS / Multiplataforma</strong></td>
+<td align="left"><code>UserDefaults</code></td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p>El API es de consulta pública: la app <strong>no almacena credenciales, usuarios ni tokens</strong>. Solo se persiste el catálogo y la fecha de la última sincronización.</p>
+</blockquote>
+<h3>6.3. Claves y modelos sugeridos (Key-Value / JSON Strings)</h3>
+<div class="tabla"><table>
+<thead>
+<tr>
+<th align="left">Clave</th>
+<th align="left">Almacenamiento sugerido</th>
+<th align="left">Contenido</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left"><code>campus_catalogo_offline</code></td>
+<td align="left">SharedPreferences / DataStore</td>
+<td align="left">JSON serializado con los edificios, dependencias y coordenadas.</td>
+</tr>
+<tr>
+<td align="left"><code>campus_ultima_sincronizacion</code></td>
+<td align="left">SharedPreferences / DataStore</td>
+<td align="left">Marca de tiempo devuelta por <code>/ultima_actualizacion</code>, <code>/sincronizar</code> o <code>/sincronizar_v2</code>.</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong><code>campus_catalogo_offline</code>:</strong></p>
+<pre><code class="language-json">{
+  &quot;data&quot;: [
+    { &quot;id&quot;: 1, &quot;codigo&quot;: &quot;EDIF-A&quot;, &quot;nombre&quot;: &quot;Edificio A - Aulas y Docencia&quot;, &quot;dependencias&quot;: &quot;Dirección de Ingeniería, Aulas A1 a A12&quot;, &quot;coordenada_central&quot;: { &quot;latitud&quot;: 20.08123456, &quot;longitud&quot;: -98.76123456 } }
+  ]
+}
+</code></pre>
+<p><strong><code>campus_ultima_sincronizacion</code>:</strong></p>
+<pre><code class="language-text">2026-11-10T19:45:00-07:00
+</code></pre>
+<hr />
+<h2 id="seccion-7">7. Despliegue y Adaptación a Otros Escenarios</h2>
+<ol>
+<li><strong>Configuración de Variables de Entorno (<code>.env</code>):</strong>
+<ul>
+<li>Asegúrese de que <code>APP_URL</code> apunte a la dirección IP o dominio accesible desde los dispositivos móviles (ej. <code>http://192.168.1.100</code> o <code>https://campus.miuniversidad.edu.mx</code>).</li>
+<li>Verifique que el enlace simbólico del almacenamiento público esté activo ejecutando: <code>php artisan storage:link</code>.</li>
+</ul>
+</li>
+<li><strong>Replicación en Centros Históricos:</strong>
+<ul>
+<li>Para adaptar los datos a un centro histórico, únicamente registre las categorías turísticas (ej. &quot;Museos&quot;, &quot;Plazas&quot;, &quot;Templos Religiosos&quot;, &quot;Monumentos&quot;), defina las coordenadas de las puertas de acceso y configure las etiquetas temáticas correspondientes. Los endpoints y la aplicación cliente funcionarán de forma idéntica e inmediata.</li>
+</ul>
+</li>
+</ol>
+<hr />
+<p><a id="seguridad-cuotas"></a></p>
+<h2 id="seguridad-cuotas-titulo">8. Seguridad y Cuotas de Petición (Rate Limiting)</h2>
+<p>Para garantizar la estabilidad, alta disponibilidad y protección contra abusos de denegación de servicio (DoS) o sobrecargas accidentales, la API móvil v1 implementa un esquema nativo de limitación de tasa (Rate Limiting) configurable y de alto rendimiento.</p>
+<h3>8.1. Mecanismo en Memoria / Caché</h3>
+<ul>
+<li><strong>Operación 100% en memoria y caché:</strong> El control de peticiones se gestiona de manera transparente a través del componente nativo <code>RateLimiter</code> de Laravel 12 integrado en el ciclo de vida de la aplicación (<code>bootstrap/app.php</code>).</li>
+<li><strong>Cero impacto en base de datos:</strong> El conteo de accesos y decaimiento de ventanas no ejecuta sentencias transaccionales sobre las tablas de MySQL de la aplicación, preservando la capacidad operativa de los inmuebles, dependencias y accesos universitarios.</li>
+<li><strong>Resolución inteligente de clientes (esquema híbrido):</strong> Si la petición incluye el encabezado <code>X-Device-Id</code>, el discriminador de cuota es <code>X-Device-Id</code> concatenado con la IP (<code>$deviceId . '|' . $request-&gt;ip()</code>). Si no lo incluye, se usa únicamente la IP (<code>$request-&gt;ip()</code>). El header es opcional pero <strong>altamente recomendado en las prácticas de clase</strong>, para que los compañeros de aula (misma IP bajo NAT) no compartan cuota.</li>
+</ul>
+<h3>8.2. Cuotas Establecidas</h3>
+<div class="tabla"><table>
+<thead>
+<tr>
+<th align="left">Canal / Endpoint</th>
+<th align="left">Limitador Asignado</th>
+<th align="left">Middleware</th>
+<th align="left">Cuota Máxima</th>
+<th align="left">Clave de Aislamiento</th>
+<th align="left">Propósito / Justificación</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left"><strong>Todos los endpoints</strong> (<code>/sincronizar</code>, <code>/sincronizar_v2</code>, <code>/ultima_actualizacion</code>, <code>/edificios</code>, <code>/edificios/{id}</code>, <code>/edificios/{id}/accesos</code>, <code>/categorias</code>, <code>/etiquetas</code>)</td>
+<td align="left"><code>api-movil</code></td>
+<td align="left"><code>throttle:api-movil</code></td>
+<td align="left"><strong>100 req / min por dispositivo</strong></td>
+<td align="left"><code>X-Device-Id</code> + IP (o solo IP si no se envía el header)</td>
+<td align="left">Cuota unificada de consulta pública, pensada para soportar holgadamente las pruebas de un grupo de aula (~20 alumnos) sin que compartan cuota entre compañeros.</td>
+</tr>
+</tbody>
+</table></div>
+<h3>8.3. Cabeceras HTTP de Control y Códigos de Estado</h3>
+<p>Cuando una solicitud es procesada por el middleware de limitación, el servidor adjunta automáticamente los siguientes encabezados HTTP de respuesta:</p>
+<ul>
+<li><code>X-RateLimit-Limit</code>: Cantidad total de peticiones permitidas en la ventana (100 por dispositivo).</li>
+<li><code>X-RateLimit-Remaining</code>: Peticiones que le restan al cliente dentro de la ventana del minuto actual.</li>
+<li><code>Retry-After</code>: Cantidad de segundos que el cliente debe esperar antes de reintentar si excedió el umbral (HTTP 429).</li>
+</ul>
+<p>En caso de superar el umbral máximo permitido, la API devuelve el código de estado <strong><code>HTTP 429 Too Many Requests</code></strong> con un cuerpo JSON normalizado bajo el estándar del proyecto:</p>
+<pre><code class="language-json">{
+  &quot;success&quot;: false,
+  &quot;data&quot;: null,
+  &quot;message&quot;: &quot;Límite de peticiones excedido (100 por minuto). Intente nuevamente en un minuto.&quot;
+}
+</code></pre>
+<h3>8.4. Recomendaciones de Integración para el Cliente Móvil</h3>
+<p>Para maximizar la resiliencia de la aplicación móvil ante bloqueos por cuota:</p>
+<ol>
+<li><strong>Interceptor HTTP (OkHttp / Retrofit / Axios):</strong> Configurar un interceptor centralizado que detecte códigos <code>429 Too Many Requests</code>.</li>
+<li><strong>Uso de Datos Locales Embebidos (Offline-First):</strong> Si cualquier endpoint responde con <code>429</code>, la aplicación <strong>no debe interrumpir</strong> la navegación ni bloquear al usuario; en su lugar, debe recurrir inmediatamente al catálogo previamente almacenado en el dispositivo (SQLite o almacenamiento clave-valor).</li>
+<li><strong>Notificación Amigable:</strong> Informar al usuario mediante un mensaje sutil (Snackbar / Toast): <em>&quot;Sincronización pausada temporalmente. Usando datos guardados en el dispositivo.&quot;</em></li>
+<li><strong>Respeto del encabezado <code>Retry-After</code>:</strong> El cliente debe posponer nuevos intentos de sincronización en segundo plano durante el lapso de segundos indicado en dicha cabecera.</li>
+<li><strong>Envío del UUID del Dispositivo (recomendado):</strong> Incluir en cada petición la cabecera <code>X-Device-Id</code> con un UUID generado durante la primera ejecución de la app y guardado localmente (<code>SharedPreferences</code>, <code>DataStore</code> o <code>UserDefaults</code>). En las prácticas de clase evita que los compañeros compartan cuota.</li>
+</ol>
+
+
+            </article>
+            <footer class="py-8 text-center text-xs text-slate-500">Orionis &middot; Campus Navigator &amp; API Hub</footer>
+        </main>
+    </div>
+</body>
+</html>
