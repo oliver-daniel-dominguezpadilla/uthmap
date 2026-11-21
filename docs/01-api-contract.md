@@ -69,3 +69,14 @@ Raíz: `{ success, ultima_actualizacion, data, message }`.
 - `ultima_actualizacion` de `/sincronizar` no trae zona horaria; la de `/sincronizar_v2` y `/ultima_actualizacion` sí. Usar solo las segundas para comparar.
 - El manual indica llegada con `d <= radio_cobertura`; la spec exige 15 m. Resuelto en D1 (`00-spec.md`).
 - `localhost` en los ejemplos: la `BASE_URL` real debe ser configurable (variable de compilación), nunca hardcodeada.
+
+## Observaciones del payload real (2026-11-21)
+`BASE_URL` en uso: `https://orionis.osoware.com/api/v1`. Fixture cruda: `test/fixtures/orionis_sincronizar_v2.json` (5 851 bytes, `ultima_actualizacion` `2026-11-03T04:22:33+00:00`).
+
+- 5 edificios activos (A–E). **A y C vienen sin `coordenada_central`, sin accesos y sin perímetro**; el manual no contempla ese caso. Decisión D-20: se excluyen del catálogo navegable y se cuentan en `Catalog.skipped`.
+- **Ningún edificio trae `mapa`** (huella isométrica); D-21 la deriva del perímetro y es `null` con menos de 3 vértices (B tiene 1, D tiene 2).
+- **`foto_url` y `url_video` son `null` en los cinco**: no hay muestra de media remota hasta que el backend publique contenido (afecta a T04/T07).
+- `dependencias` llega como una única cadena separada por comas, no como lista.
+- El edificio D trae dos accesos con `tipo_punto: ENTRADA_PRINCIPAL` y `es_principal: false` en uno cuyo nombre dice "Perimetro": se conserva el `tipo_punto` y se ordena `es_principal` primero.
+- `categoria.nombre` real: "Académico", "Administrativo", "Laboratorio / Taller", "Área Común / Convivencia". El enum local tiene 3 valores (D-23).
+

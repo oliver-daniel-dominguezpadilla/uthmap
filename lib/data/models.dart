@@ -87,7 +87,9 @@ class Building {
     required this.tags,
     required this.photoAsset,
     required this.videoAsset,
-    required this.footprint,
+    this.footprint,
+    this.photoUrl,
+    this.videoUrl,
     required this.coordinates,
   });
 
@@ -124,7 +126,9 @@ class Building {
   final List<String> tags;
   final String? photoAsset;
   final String? videoAsset;
-  final MapFootprint footprint;
+  final MapFootprint? footprint;
+  final String? photoUrl;
+  final String? videoUrl;
   final List<BuildingCoordinate> coordinates;
 
   List<BuildingCoordinate> get entrances =>
@@ -189,7 +193,13 @@ String foldForSearch(String input) {
 }
 
 class Catalog {
-  const Catalog({required this.version, required this.buildings});
+  const Catalog({
+    required this.version,
+    required this.buildings,
+    this.originLat,
+    this.originLng,
+    this.skipped = 0,
+  });
 
   factory Catalog.fromJson(Map<String, dynamic> json) => Catalog(
     version: json['version'] as String? ?? '',
@@ -200,4 +210,13 @@ class Catalog {
 
   final String version;
   final List<Building> buildings;
+
+  /// Centro del catálogo (promedio de los puntos con coordenadas de la API).
+  final double? originLat;
+
+  /// Centro del catálogo (promedio de los puntos con coordenadas de la API).
+  final double? originLng;
+
+  /// Edificios descartados por no traer coordenadas (D-20).
+  final int skipped;
 }

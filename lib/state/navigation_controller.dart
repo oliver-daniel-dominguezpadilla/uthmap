@@ -23,7 +23,6 @@ class NavigationController extends ChangeNotifier {
 
   static const Duration _tickDuration = Duration(milliseconds: 300);
   static const double _stepM = 3;
-  static const double _arrivalM = 15;
   static const double _accuracyLimitM = 30;
 
   late Building? _target;
@@ -293,13 +292,14 @@ class NavigationController extends ChangeNotifier {
     if (_target != null) {
       final point = _directedPoint;
       if (point == null) return;
-      if (point.distanceM <= _arrivalM) {
+      final arrival = arrivalRadiusM(_target!.coverageRadiusM);
+      if (point.distanceM <= arrival) {
         _handleArrival();
         return;
       }
       _moveToward(point.point, _stepM);
       final updated = _directedPoint;
-      if (updated != null && updated.distanceM <= _arrivalM) {
+      if (updated != null && updated.distanceM <= arrival) {
         _handleArrival();
         return;
       }
@@ -480,7 +480,8 @@ class NavigationController extends ChangeNotifier {
     if (_realGpsStatus == SensorStatus.ok) {
       if (_target != null) {
         final point = _directedPoint;
-        if (point != null && point.distanceM <= _arrivalM) {
+        if (point != null &&
+            point.distanceM <= arrivalRadiusM(_target!.coverageRadiusM)) {
           _handleArrival();
         }
       } else {

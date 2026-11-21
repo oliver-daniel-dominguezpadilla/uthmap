@@ -131,6 +131,7 @@ class _IsoPainter extends CustomPainter {
     }
     for (final building in buildings) {
       final f = building.footprint;
+      if (f == null) continue;
       sites.add(
         _Site(
           east: f.east,

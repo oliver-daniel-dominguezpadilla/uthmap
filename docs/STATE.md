@@ -6,11 +6,13 @@ Alcance: evolucionar el prototipo UthMap a datos y sensores reales. Android prim
 ## Tareas
 | ID | Título | Estado | Reintentos | Notas |
 |---|---|---|---|---|
-| CFG-02 | Endurecer config de agentes: `steps`, `deny` de commit/borrados/autoconfig, regla de resúmenes en `AGENTS.md` | bloqueada | 1 | Hecho y verificado: D-06 en `AGENTS.md`, `deny` en commit/borrados, `deny edit` en `.opencode/*` y `AGENTS.md`; analyze limpio y 20/20 tests. **Falta solo `steps: 16` / `steps: 24`**: los dos agentes tienen `deny edit` en `.opencode/*` → edición humana de 2 líneas (ver D-19) |
+| CFG-02 | Endurecer config de agentes: `steps`, `deny` de commit/borrados/autoconfig, regla de resúmenes en `AGENTS.md` | hecha | 1 | Cerrada con CFG-02-bis. `deny` en commit/borrados/`AGENTS.md`/`.opencode/*`, `steps: 16` / `steps: 24`, analyze limpio y 20/20. Resumen: `docs/resumenes/F0-CFG-02-endurecimiento-aplicado.md` |
 | A0 | Auditoría de lib/ y test/ → corregir docs/07 | hecha | 0 | 2026-11-21, solo lectura estática; `docs/07` reescrito con inventario real, 20 tests y 6 discrepancias |
-| T01 | Auditar core/geo y geofence vs vectores; `arrivalM = min(15, radio_cobertura)` con tests | pendiente | 0 | Paralelo con T02 (archivos disjuntos) |
-| T02 | Capturar payload real de Orionis como fixture → parser a modelos existentes | pendiente | 0 | Sin payload real no se escribe parser (D-13) |
-| T03 | CampusApi + sync + X-Device-Id + 429/offline | pendiente | 0 | Dependencia nueva → GD antes |
+| T01 | Auditar core/geo y geofence vs vectores; `arrivalM = min(15, radio_cobertura)` con tests | hecha | 0 | 30/30 tests, analyze limpio. Resumen: `docs/resumenes/F1-T01-core-llegada.md`. Verificación en dispositivo queda para G5 |
+| T02 | Capturar payload real de Orionis como fixture → parser a modelos existentes | hecha | 1 | Fixture real (5 851 B) + `catalogFromSincronizarV2`. 40/40 verde. Resumen: `docs/resumenes/F1-T02-parser-v2.md` |
+| T03 | CampusApi + sync + X-Device-Id + 429/offline | pendiente | 0 | Divídida por el tope de 16 pasos: T03a (api + device id) y T03b (sync en repositorio). GD aprobada: `http`, `uuid` |
+| T03a | `CampusApi` + `X-Device-Id` + errores 429/timeout, con `MockClient` | en revisión | 0 | REPORTE recibido: 51/51 verde, analyze limpio; falta revisión del Arquitecto |
+| T03b | `CatalogRepository.syncRemote` (comparar timestamp, reemplazo atómico, offline) | pendiente | 0 | Depende de T03a |
 | T04 | Caché de fotos/videos remotos + indicador de sync | pendiente | 0 | Dependencia nueva → GD antes |
 | T05 | Sensores reales + calibración + descarte de fixes + log (T05+T06 fusionadas) | pendiente | 0 | Mismo archivo: `navigation_controller.dart` |
 | T07 | Validación de extras en dispositivo | pendiente | 0 | |
@@ -21,6 +23,7 @@ Estados: pendiente · en curso · en revisión · hecha · bloqueada.
 | ID | Estado | Respuesta del usuario | Fecha |
 |---|---|---|---|
 | G0 | aprobada | Aprobado con plan ajustado (CFG-02 → T01 ∥ T02 → G1 → T03/T04 con GD → T05 fusionada → T07) | 2026-11-21 |
+| G1 | aprobada | Tests verdes (40/40) y UI idéntica a `docs/screenshots/` | 2026-11-21 |
 
 ## Decisiones
 - D-01 · Modelo único: `opencode-go/deepseek-v4.1-flash` en ambos roles. Origen único en `opencode.json`; el Operador lo declara explícito. El ID anterior (`deepseek-v4-flash`) no existe en el catálogo.
@@ -42,5 +45,9 @@ Estados: pendiente · en curso · en revisión · hecha · bloqueada.
 - D-17 · `Building` gana `photoUrl`/`videoUrl` nullable; `photoAsset`/`videoAsset` se conservan para el catálogo incluido. La UI elige remoto si hay URL (T04), local si no.
 - D-18 · El repo **no tiene commit base** (todo el árbol sin rastrear). Antes de T01/T02 se hace un commit inicial del estado actual para tener punto de retorno y diffs revisables. Lo ejecuta el humano (GC).
 - D-19 · `steps` se aplica a mano: ambos agentes tienen `deny edit` en `.opencode/*`, así que la tarea no puede escribir su propio tope. Edición humana de 2 líneas, no se relaja el `deny`.
+- D-20 · Edificios sin ninguna coordenada (A y C en el payload real) se **excluyen** del catálogo navegable y se cuentan en `Catalog.skipped`. Motivo: `mainEntrance` revienta con lista vacía y `osm_map_view` la usa; incluirlos exigiría tocar UI y el OSM view en F1.
+- D-21 · Sin `mapa` en la API, la huella se deriva del `perimetro` (bbox proyectada, `alto` = constante visual declarada) y es `null` con menos de 3 vértices. `MapFootprint?` pasa a nullable; el mapa isométrico omite los que no tienen.
+- D-22 · El origen del campus deja de ser solo global: `Catalog` lleva `originLat`/`originLng` calculados del propio payload. En F1 solo se almacenan (sin cablear UI); el cableado es T04.
+- D-23 · Categoría: el enum conserva 3 valores (cambio de enum = cambio de UI). "Académico"→`academico`, "Administrativo"→`administrativo`, cualquier otra ("Área Común / Convivencia", "Laboratorio / Taller")→`servicios`, documentado como pérdida conocida.
 - Wireframe manda sobre el tema oscuro del kit (U6).
 - Desarrollo sin web: build web tarda 5–8 min (U7).

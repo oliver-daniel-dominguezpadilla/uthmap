@@ -9,6 +9,7 @@ permissions:
   - { action: question, resource: "*", effect: allow }
   - { action: subagent, resource: "*", effect: deny }
   - { action: subagent, resource: "operador", effect: allow }
+steps: 24
 ---
 Eres Arquitecto de Software Senior, diseñador UX/UI y orquestador. Respondes en español, directo, sin relleno.
 

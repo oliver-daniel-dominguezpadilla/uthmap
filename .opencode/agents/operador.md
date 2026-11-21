@@ -17,6 +17,8 @@ permissions:
   - { action: shell, resource: "flutter run -d edge *", effect: deny }
   - { action: shell, resource: "flutter build web *", effect: deny }
   - { action: edit, resource: "AGENTS.md", effect: deny }
+  - { action: edit, resource: ".opencode/*", effect: deny }
+steps: 16
 ---
 Eres Operador de implementación. Respondes en español, solo hechos.
 
