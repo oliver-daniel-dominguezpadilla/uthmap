@@ -43,6 +43,8 @@ dependencies:
   chewie: ^1.18.1
   http: ^1.2.0
   uuid: ^4.6.0
+  cached_network_image: ^4.0.7
+  flutter_cache_manager: ^3.5.0
 
 dev_dependencies:
   flutter_test:

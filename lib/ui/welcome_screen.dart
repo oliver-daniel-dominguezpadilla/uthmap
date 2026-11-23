@@ -8,7 +8,7 @@ import 'credits.dart';
 import 'theme.dart';
 import 'widgets/primitives.dart';
 
-/// Primera ejecución: sincronización simulada del catálogo 1:N.
+/// Primera ejecución: sincronización real del catálogo 1:N contra Orionis.
 /// Después de este paso la app funciona sin conexión.
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({
@@ -18,7 +18,9 @@ class WelcomeScreen extends StatefulWidget {
   });
 
   final CatalogRepository repository;
-  final ValueChanged<Catalog> onReady;
+
+  /// Entrega el catálogo efectivo; `offline` indica que se conservó el local.
+  final void Function(Catalog catalog, {bool offline}) onReady;
 
   @override
   State<WelcomeScreen> createState() => _WelcomeScreenState();
@@ -49,10 +51,11 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
       _error = null;
     });
     try {
-      final catalog = await widget.repository.sync();
+      final result = await widget.repository.syncRemote();
+      final catalog = result.catalog ?? await widget.repository.loadBundled();
       if (!mounted) return;
       _finishing = true;
-      widget.onReady(catalog);
+      widget.onReady(catalog, offline: result.status == SyncStatus.offline);
     } catch (_) {
       if (!mounted) return;
       setState(() {

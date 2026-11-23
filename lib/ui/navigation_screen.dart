@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../data/media_cache.dart';
 import '../data/models.dart';
 import '../state/nav_state.dart';
 import '../state/navigation_controller.dart';
@@ -21,9 +22,17 @@ enum _MenuAction { explore, osm, directory, sensors, credits, reset }
 /// Pantalla principal: reproduce el stage de 375×760 del wireframe y, en
 /// escritorio, añade el panel lateral de 220 px con los sensores.
 class NavigationScreen extends StatefulWidget {
-  const NavigationScreen({super.key, required this.controller});
+  const NavigationScreen({
+    super.key,
+    required this.controller,
+    this.mediaCache,
+  });
 
   final NavigationController controller;
+
+  /// Medios remotos del catálogo. Si no se inyecta, la pantalla usa una
+  /// instancia local (sin estado) para no obligar a los llamadores de prueba.
+  final MediaCache? mediaCache;
 
   @override
   State<NavigationScreen> createState() => _NavigationScreenState();
@@ -32,6 +41,7 @@ class NavigationScreen extends StatefulWidget {
 class _NavigationScreenState extends State<NavigationScreen> {
   late final TextEditingController _search;
   final FocusNode _focus = FocusNode();
+  late final MediaCache _mediaCache = widget.mediaCache ?? MediaCache();
   bool _sheetExpanded = true;
   bool _showOsm = false;
 
@@ -79,8 +89,11 @@ class _NavigationScreenState extends State<NavigationScreen> {
       if (!mounted) return;
       Navigator.of(context).push(
         MaterialPageRoute<void>(
-          builder: (_) =>
-              DetailScreen(building: building, controller: _controller),
+          builder: (_) => DetailScreen(
+            building: building,
+            controller: _controller,
+            mediaCache: _mediaCache,
+          ),
         ),
       );
     });
@@ -101,8 +114,11 @@ class _NavigationScreenState extends State<NavigationScreen> {
   void _openDetail(Building building) {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) =>
-            DetailScreen(building: building, controller: _controller),
+        builder: (_) => DetailScreen(
+          building: building,
+          controller: _controller,
+          mediaCache: _mediaCache,
+        ),
       ),
     );
   }
@@ -111,14 +127,15 @@ class _NavigationScreenState extends State<NavigationScreen> {
     _focus.unfocus();
     await Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) => DirectoryScreen(controller: _controller),
+        builder: (_) =>
+            DirectoryScreen(controller: _controller, mediaCache: _mediaCache),
       ),
     );
     if (mounted) setState(() {});
   }
 
   void _playVideo(Building building) {
-    unawaited(showVideoSheet(context, building));
+    unawaited(showVideoSheet(context, building, _mediaCache));
   }
 
   void _openSensors() {
@@ -244,6 +261,7 @@ class _NavigationScreenState extends State<NavigationScreen> {
                   targetPoint: controller.targetPoint,
                   buildings: controller.buildings,
                   highlightedCode: controller.target?.code,
+                  origin: controller.origin,
                 ),
         ),
         Positioned(
@@ -292,6 +310,7 @@ class _NavigationScreenState extends State<NavigationScreen> {
             onPlayVideo: _playVideo,
             onOpenDetail: _openDetail,
             onOpenDirectory: () => unawaited(_openDirectory()),
+            mediaCache: _mediaCache,
           ),
         ),
       ],

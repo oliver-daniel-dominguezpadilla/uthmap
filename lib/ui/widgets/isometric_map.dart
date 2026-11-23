@@ -17,6 +17,7 @@ class IsoSiteMap extends StatelessWidget {
     required this.targetPoint,
     required this.buildings,
     required this.highlightedCode,
+    required this.origin,
   });
 
   final GeoPoint user;
@@ -25,6 +26,9 @@ class IsoSiteMap extends StatelessWidget {
   final GeoPoint? targetPoint;
   final List<Building> buildings;
   final String? highlightedCode;
+
+  /// Origen de la proyección compartido con las huellas del catálogo (D-26).
+  final GeoPoint origin;
 
   @override
   Widget build(BuildContext context) {
@@ -39,6 +43,7 @@ class IsoSiteMap extends StatelessWidget {
             targetPoint: targetPoint,
             buildings: buildings,
             highlightedCode: highlightedCode,
+            origin: origin,
           ),
           size: Size.infinite,
         ),
@@ -55,6 +60,7 @@ class _IsoPainter extends CustomPainter {
     required this.targetPoint,
     required this.buildings,
     required this.highlightedCode,
+    required this.origin,
   });
 
   final GeoPoint user;
@@ -63,6 +69,7 @@ class _IsoPainter extends CustomPainter {
   final GeoPoint? targetPoint;
   final List<Building> buildings;
   final String? highlightedCode;
+  final GeoPoint origin;
 
   static const double scale = 1.6;
   static const double _c30 = 0.8660254;
@@ -93,7 +100,7 @@ class _IsoPainter extends CustomPainter {
   ];
 
   Offset _project(Size size, double east, double north, [double z = 0]) {
-    final local = projectToCampus(user);
+    final local = projectToCampus(user, origin: origin);
     final cx = size.width * 0.47;
     final cy = size.height * 0.33;
     return Offset(
@@ -107,7 +114,7 @@ class _IsoPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     canvas.clipRect(Offset.zero & size);
-    final local = projectToCampus(user);
+    final local = projectToCampus(user, origin: origin);
 
     _paintGrid(canvas, size, local);
     _paintWalkways(canvas, size, local);
@@ -206,8 +213,8 @@ class _IsoPainter extends CustomPainter {
   void _paintRoute(Canvas canvas, Size size) {
     final point = targetPoint;
     if (point == null) return;
-    final local = projectToCampus(user);
-    final target = projectToCampus(point);
+    final local = projectToCampus(user, origin: origin);
+    final target = projectToCampus(point, origin: origin);
     final paint = Paint()
       ..color = AppColors.accent.withValues(alpha: 0.45)
       ..strokeWidth = 1
@@ -223,9 +230,9 @@ class _IsoPainter extends CustomPainter {
   }
 
   void _paintCone(Canvas canvas, Size size) {
-    final local = projectToCampus(user);
-    final origin = _project(size, local.east, local.north);
-    final path = Path()..moveTo(origin.dx, origin.dy);
+    final local = projectToCampus(user, origin: origin);
+    final anchor = _project(size, local.east, local.north);
+    final path = Path()..moveTo(anchor.dx, anchor.dy);
     for (var angle = -30; angle <= 30; angle += 10) {
       final radians = toRadians(headingDeg + angle);
       final point = _project(
@@ -438,6 +445,8 @@ class _IsoPainter extends CustomPainter {
     final newPoint = targetPoint;
     return oldDelegate.user.lat != user.lat ||
         oldDelegate.user.lng != user.lng ||
+        oldDelegate.origin.lat != origin.lat ||
+        oldDelegate.origin.lng != origin.lng ||
         oldDelegate.headingDeg != headingDeg ||
         oldDelegate.bearingDeg != bearingDeg ||
         oldDelegate.highlightedCode != highlightedCode ||

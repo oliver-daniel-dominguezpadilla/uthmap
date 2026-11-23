@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
 
+import '../data/media_cache.dart';
 import '../data/models.dart';
 import '../state/navigation_controller.dart';
 import 'credits.dart';
 import 'theme.dart';
+import 'widgets/building_photo.dart';
 import 'widgets/primitives.dart';
 import 'widgets/video_sheet.dart';
+
+/// Caché de medios por defecto cuando la pantalla se construye sin inyectarla
+/// (por ejemplo desde el directorio). `MediaCache` no guarda estado propio.
+final MediaCache _defaultMediaCache = MediaCache();
 
 /// Ficha completa del edificio: foto, dependencias, horarios, etiquetas,
 /// coordenadas 1:N y el acceso directo a la navegación.
@@ -14,10 +20,12 @@ class DetailScreen extends StatelessWidget {
     super.key,
     required this.building,
     required this.controller,
+    this.mediaCache,
   });
 
   final Building building;
   final NavigationController controller;
+  final MediaCache? mediaCache;
 
   void _goTo(BuildContext context) {
     controller.selectTarget(building);
@@ -26,6 +34,7 @@ class DetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final mediaCache = this.mediaCache ?? _defaultMediaCache;
     final topInset = MediaQuery.paddingOf(context).top;
     final distance = controller.nearestEntranceTo(building)?.distanceM;
     final entrances = building.coordinates
@@ -37,7 +46,11 @@ class DetailScreen extends StatelessWidget {
       body: CustomScrollView(
         slivers: [
           SliverToBoxAdapter(
-            child: _Hero(building: building, topInset: topInset),
+            child: _Hero(
+              building: building,
+              topInset: topInset,
+              mediaCache: mediaCache,
+            ),
           ),
           SliverToBoxAdapter(
             child: Padding(
@@ -168,11 +181,13 @@ class DetailScreen extends StatelessWidget {
                       ),
                     ),
                   const SectionRule(),
-                  if (building.videoAsset != null) ...[
+                  if (building.videoAsset != null ||
+                      building.videoUrl != null) ...[
                     BlackButton(
                       label: kVideoCta,
                       height: 46,
-                      onPressed: () => showVideoSheet(context, building),
+                      onPressed: () =>
+                          showVideoSheet(context, building, mediaCache),
                     ),
                     const SizedBox(height: 10),
                     Text(
@@ -251,10 +266,15 @@ String _coordinateLabel(CoordinateType type) => switch (type) {
 };
 
 class _Hero extends StatelessWidget {
-  const _Hero({required this.building, required this.topInset});
+  const _Hero({
+    required this.building,
+    required this.topInset,
+    required this.mediaCache,
+  });
 
   final Building building;
   final double topInset;
+  final MediaCache mediaCache;
 
   @override
   Widget build(BuildContext context) {
@@ -263,14 +283,12 @@ class _Hero extends StatelessWidget {
       child: Stack(
         fit: StackFit.expand,
         children: [
-          if (building.photoAsset == null)
-            const ColoredBox(color: AppColors.muted)
-          else
-            Image.asset(
-              building.photoAsset!,
-              fit: BoxFit.cover,
-              cacheWidth: 1280,
-            ),
+          BuildingPhoto(
+            building: building,
+            mediaCache: mediaCache,
+            fit: BoxFit.cover,
+            memCacheWidth: 1280,
+          ),
           const DecoratedBox(
             decoration: BoxDecoration(
               gradient: LinearGradient(

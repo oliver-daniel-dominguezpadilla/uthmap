@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 
+import '../data/media_cache.dart';
 import '../data/models.dart';
 import '../state/navigation_controller.dart';
 import 'detail_screen.dart';
 import 'theme.dart';
+import 'widgets/building_photo.dart';
 import 'widgets/primitives.dart';
 
 class DirectoryScreen extends StatefulWidget {
@@ -11,10 +13,12 @@ class DirectoryScreen extends StatefulWidget {
     super.key,
     required this.controller,
     this.initialQuery = '',
+    this.mediaCache,
   });
 
   final NavigationController controller;
   final String initialQuery;
+  final MediaCache? mediaCache;
 
   @override
   State<DirectoryScreen> createState() => _DirectoryScreenState();
@@ -22,6 +26,7 @@ class DirectoryScreen extends StatefulWidget {
 
 class _DirectoryScreenState extends State<DirectoryScreen> {
   late final TextEditingController _search;
+  late final MediaCache _mediaCache = widget.mediaCache ?? MediaCache();
   final FocusNode _focus = FocusNode();
   BuildingCategory? _category;
 
@@ -57,8 +62,11 @@ class _DirectoryScreenState extends State<DirectoryScreen> {
   void _open(Building building) {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) =>
-            DetailScreen(building: building, controller: widget.controller),
+        builder: (_) => DetailScreen(
+          building: building,
+          controller: widget.controller,
+          mediaCache: _mediaCache,
+        ),
       ),
     );
   }
@@ -188,13 +196,12 @@ class _DirectoryScreenState extends State<DirectoryScreen> {
               child: SizedBox(
                 width: 64,
                 height: 64,
-                child: building.photoAsset == null
-                    ? const ColoredBox(color: AppColors.muted)
-                    : Image.asset(
-                        building.photoAsset!,
-                        fit: BoxFit.cover,
-                        cacheWidth: 192,
-                      ),
+                child: BuildingPhoto(
+                  building: building,
+                  mediaCache: _mediaCache,
+                  fit: BoxFit.cover,
+                  memCacheWidth: 192,
+                ),
               ),
             ),
             const SizedBox(width: 12),

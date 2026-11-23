@@ -100,14 +100,25 @@ class NearestPoint {
   final double distanceM;
 }
 
-LocalMeters projectToCampus(GeoPoint point) => LocalMeters(
-  (point.lng - campusOriginLng) * metersPerDegLngAt(campusOriginLat),
-  (point.lat - campusOriginLat) * metersPerDegLat,
+/// Proyecta [point] a metros locales respecto a [origin]. Por defecto usa el
+/// origen global del campus, pero el catálogo puede traer su propio centro
+/// (D-26): el mapa y los datos deben compartir el mismo origen.
+LocalMeters projectToCampus(
+  GeoPoint point, {
+  GeoPoint origin = const GeoPoint(campusOriginLat, campusOriginLng),
+}) => LocalMeters(
+  (point.lng - origin.lng) * metersPerDegLngAt(origin.lat),
+  (point.lat - origin.lat) * metersPerDegLat,
 );
 
-GeoPoint campusPoint(double east, double north) => GeoPoint(
-  campusOriginLat + north / metersPerDegLat,
-  campusOriginLng + east / metersPerDegLngAt(campusOriginLat),
+/// Inverso de [projectToCampus] para el mismo [origin].
+GeoPoint campusPoint(
+  double east,
+  double north, {
+  GeoPoint origin = const GeoPoint(campusOriginLat, campusOriginLng),
+}) => GeoPoint(
+  origin.lat + north / metersPerDegLat,
+  origin.lng + east / metersPerDegLngAt(origin.lat),
 );
 
 GeoPoint moveBy(GeoPoint from, double bearingDeg, double distanceM) => GeoPoint(

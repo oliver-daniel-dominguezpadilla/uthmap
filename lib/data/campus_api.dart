@@ -80,9 +80,21 @@ class CampusApi {
     );
   }
 
+  /// `GET /sincronizar_v2` -> envoltura cruda ya validada (`success == true`
+  /// y `data` es una lista). El consumidor decide cuándo mapearla.
+  Future<Map<String, dynamic>> fetchCatalogPayload() async {
+    final json = await _getJson('sincronizar_v2');
+    if (json['data'] is! List) {
+      throw const CampusApiException(
+        message: 'catálogo inválido: /sincronizar_v2 data no es una lista',
+      );
+    }
+    return json;
+  }
+
   /// `GET /sincronizar_v2` -> catálogo mapeado a los modelos locales.
   Future<Catalog> fetchCatalog() async {
-    final json = await _getJson('sincronizar_v2');
+    final json = await fetchCatalogPayload();
     try {
       return catalogFromSincronizarV2(json);
     } on CampusApiException {

@@ -10,3 +10,8 @@ Una línea por resumen, en orden cronológico.
 | 2026-11-21 | `F1-T01-core-llegada.md` | `core/` auditado contra `docs/02`; `arrivalRadiusM` = `min(15, radio_cobertura)` | Hecha; analyze limpio, 30/30 |
 | 2026-11-21 | `F1-T02-parser-v2.md` | Fixture real de Orionis + `catalogFromSincronizarV2`; D-20…D-23 | Hecha; analyze limpio, 40/40 |
 | 2026-11-21 | `F1-fase.md` | Cierre de F0/F1: A0, CFG-02, T01, T02, T03a (sin revisar) | G0 y G1 aprobadas; 51/51 verde |
+| 2026-11-21 | `F1-T03-api-sync.md` | `CampusApi` + `X-Device-Id` + 429/timeout; `syncRemote` con timestamp, reemplazo atómico y offline | Hecha; review OK, analyze limpio, 58/58 |
+| 2026-11-21 | `F1-T04-medios-sync.md` | `MediaCache`, `BuildingPhoto`, foto/video remotos en ficha/directorio/panel y sync real en el arranque | Hecha; G2 aprobada, analyze limpio, 68/68 |
+| 2026-11-21 | `F1-resumen-sesion.md` | Resumen consolidado de la sesión: F0, T01–T04, puertas, decisiones D-15…D-24, riesgos y T05 | 68/68, analyze limpio; T05 pendiente |
+| 2026-11-22 | `F1-T05-sensores-reales.md` | T05 partida en T05a–T05d: `FixGate`/declinación/log, cableado del motor, panel de sensores (G2) y origen del catálogo (D-26) | T05a–T05c hechas (92/92, analyze limpio); T05d sin tests ni validación |
+| 2026-11-23 | `F1-T05d-origen-catalogo.md` | Origen del catálogo en `projectToCampus`/`IsoSiteMap`/`resetDemo`; `test/catalog_origin_test.dart` | Hecha; analyze limpio, 96/96 |

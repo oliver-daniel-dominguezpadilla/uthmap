@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
+import '../../data/media_cache.dart';
 import '../../data/models.dart';
 import '../../state/navigation_controller.dart';
 import '../theme.dart';
+import 'building_photo.dart';
 import 'primitives.dart';
 
 class NavSheet extends StatefulWidget {
@@ -15,6 +17,7 @@ class NavSheet extends StatefulWidget {
     required this.onPlayVideo,
     required this.onOpenDetail,
     required this.onOpenDirectory,
+    this.mediaCache,
   });
 
   final NavigationController controller;
@@ -24,6 +27,7 @@ class NavSheet extends StatefulWidget {
   final ValueChanged<Building> onPlayVideo;
   final ValueChanged<Building> onOpenDetail;
   final VoidCallback onOpenDirectory;
+  final MediaCache? mediaCache;
 
   static const double collapsedHeight = 146;
   static const double expandedHeight = 218;
@@ -33,6 +37,7 @@ class NavSheet extends StatefulWidget {
 }
 
 class _NavSheetState extends State<NavSheet> {
+  late final MediaCache _mediaCache = widget.mediaCache ?? MediaCache();
   double _dragDy = 0;
 
   void _handleTap() => widget.onExpanded(!widget.expanded);
@@ -144,13 +149,12 @@ class _NavSheetState extends State<NavSheet> {
                           child: SizedBox(
                             width: 44,
                             height: 44,
-                            child: nearby.photoAsset == null
-                                ? const ColoredBox(color: AppColors.muted)
-                                : Image.asset(
-                                    nearby.photoAsset!,
-                                    fit: BoxFit.cover,
-                                    cacheWidth: 132,
-                                  ),
+                            child: BuildingPhoto(
+                              building: nearby,
+                              mediaCache: _mediaCache,
+                              fit: BoxFit.cover,
+                              memCacheWidth: 132,
+                            ),
                           ),
                         ),
                         const SizedBox(width: 10),
@@ -228,7 +232,7 @@ class _NavSheetState extends State<NavSheet> {
     Building? nearby,
   ) {
     if (directed) {
-      if (target!.videoAsset != null) {
+      if (target!.videoAsset != null || target.videoUrl != null) {
         return BlackButton(
           label: kVideoCta,
           onPressed: () => widget.onPlayVideo(target),

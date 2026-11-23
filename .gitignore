@@ -81,3 +81,8 @@ flutter_*.png
 Thumbs.db
 Desktop.ini
 .DS_Store
+.opencode
+AGENTS.md
+docs
+opencode.json
+\docs

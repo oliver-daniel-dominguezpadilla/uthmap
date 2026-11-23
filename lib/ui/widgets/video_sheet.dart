@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
+import '../../data/media_cache.dart';
 import '../../data/models.dart';
 import '../theme.dart';
 
@@ -16,20 +17,29 @@ bool get _videoPlatformSupported {
   };
 }
 
-Future<void> showVideoSheet(BuildContext context, Building building) {
+Future<void> showVideoSheet(
+  BuildContext context,
+  Building building,
+  MediaCache mediaCache,
+) {
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
     barrierColor: AppColors.ink.withValues(alpha: 0.55),
-    builder: (_) => VideoSheet(building: building),
+    builder: (_) => VideoSheet(building: building, mediaCache: mediaCache),
   );
 }
 
 class VideoSheet extends StatefulWidget {
-  const VideoSheet({super.key, required this.building});
+  const VideoSheet({
+    super.key,
+    required this.building,
+    required this.mediaCache,
+  });
 
   final Building building;
+  final MediaCache mediaCache;
 
   @override
   State<VideoSheet> createState() => _VideoSheetState();
@@ -51,20 +61,46 @@ class _VideoSheetState extends State<VideoSheet> {
     }
   }
 
-  Future<void> _initialize() async {
+  /// Controlador del video: primero el archivo remoto cacheado, luego el
+  /// asset incluido en la app. `null` si el edificio no tiene ninguno.
+  Future<VideoPlayerController?> _openController() async {
+    final url = widget.building.videoUrl;
+    if (url != null) {
+      final file = await widget.mediaCache.videoFile(url);
+      if (file != null) return VideoPlayerController.file(file);
+    }
     final asset = widget.building.videoAsset;
-    if (asset == null) return;
+    if (asset != null) return VideoPlayerController.asset(asset);
+    return null;
+  }
+
+  Future<void> _initialize() async {
+    if (widget.building.videoAsset == null &&
+        widget.building.videoUrl == null) {
+      return;
+    }
     setState(() {
       _loading = true;
       _error = null;
     });
+    VideoPlayerController? pending;
     try {
-      final video = VideoPlayerController.asset(asset);
+      pending = await _openController();
+      final video = pending;
+      if (video == null) {
+        if (!mounted) return;
+        setState(() {
+          _loading = false;
+          _error = 'No se pudo cargar el recorrido en video.';
+        });
+        return;
+      }
       await video.initialize();
       if (!mounted) {
         await video.dispose();
         return;
       }
+      pending = null;
       _video = video;
       _chewie = ChewieController(
         videoPlayerController: video,
@@ -88,6 +124,8 @@ class _VideoSheetState extends State<VideoSheet> {
       );
       setState(() => _loading = false);
     } catch (_) {
+      final failed = pending;
+      if (failed != null) await failed.dispose();
       if (!mounted) return;
       setState(() {
         _loading = false;

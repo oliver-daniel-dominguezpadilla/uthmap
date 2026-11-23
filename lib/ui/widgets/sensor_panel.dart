@@ -165,8 +165,79 @@ class SensorPanel extends StatelessWidget {
               onTap: () => unawaited(controller.setRealSensors(false)),
             ),
           ],
+          const SizedBox(height: 16),
+          const Divider(height: 1, color: AppColors.lineSoft),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              const TinyLabel('Declinación'),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  _formatDeclination(controller.declinationDeg),
+                  style: AppTheme.mono(size: 12, color: AppColors.ink),
+                ),
+              ),
+              _PanelAction(
+                label: '−1°',
+                onTap: () => unawaited(
+                  controller.setDeclinationDeg(controller.declinationDeg - 1),
+                ),
+              ),
+              const SizedBox(width: 12),
+              _PanelAction(
+                label: '+1°',
+                onTap: () => unawaited(
+                  controller.setDeclinationDeg(controller.declinationDeg + 1),
+                ),
+              ),
+              const SizedBox(width: 12),
+              _PanelAction(
+                label: '0',
+                onTap: () => unawaited(controller.setDeclinationDeg(0)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            controller.compassAccuracyDeg == null
+                ? 'Brújula —'
+                : 'Brújula ±${controller.compassAccuracyDeg!.round()}°',
+            style: const TextStyle(fontSize: 12, color: AppColors.dim),
+          ),
+          const SizedBox(height: 12),
+          _PanelAction(
+            label: 'Ver log',
+            onTap: () => unawaited(showSensorLog(context, controller)),
+          ),
         ],
       ],
+    );
+  }
+}
+
+/// Declinación con un decimal y signo solo cuando no es cero.
+String _formatDeclination(double value) {
+  final rounded = (value * 10).round() / 10;
+  if (rounded == 0) return '0°';
+  final sign = rounded > 0 ? '+' : '−';
+  return '$sign${rounded.abs().toStringAsFixed(1)}°';
+}
+
+class _SheetHandle extends StatelessWidget {
+  const _SheetHandle();
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Container(
+        width: 40,
+        height: 4,
+        decoration: BoxDecoration(
+          color: const Color(0xFFD6D4CF),
+          borderRadius: BorderRadius.circular(2),
+        ),
+      ),
     );
   }
 }
@@ -368,20 +439,81 @@ Future<void> showSensorPanel(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Center(
-                    child: Container(
-                      width: 40,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFD6D4CF),
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                  ),
+                  const _SheetHandle(),
                   const SizedBox(height: 18),
                   SensorPanel(controller: controller, compact: true),
                 ],
               ),
+            ),
+          ),
+        ),
+      );
+    },
+  );
+}
+
+/// Hoja de depuración con las últimas entradas del log de sensores.
+Future<void> showSensorLog(
+  BuildContext context,
+  NavigationController controller,
+) {
+  return showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    barrierColor: AppColors.ink.withValues(alpha: 0.28),
+    builder: (sheetContext) {
+      return Container(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.sizeOf(sheetContext).height * 0.70,
+        ),
+        decoration: const BoxDecoration(
+          color: AppColors.page,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(22, 12, 22, 22),
+            child: ListenableBuilder(
+              listenable: controller,
+              builder: (context, _) {
+                final lines = controller.sensorLogLines;
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const _SheetHandle(),
+                    const SizedBox(height: 18),
+                    const TinyLabel('Log de sensores'),
+                    const SizedBox(height: 12),
+                    Flexible(
+                      child: lines.isEmpty
+                          ? const Text(
+                              'Sin eventos todavía.',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: AppColors.dim,
+                              ),
+                            )
+                          : ListView.separated(
+                              shrinkWrap: true,
+                              padding: EdgeInsets.zero,
+                              itemCount: lines.length,
+                              separatorBuilder: (context, index) =>
+                                  const SizedBox(height: 6),
+                              itemBuilder: (context, index) => Text(
+                                lines[index],
+                                style: AppTheme.mono(
+                                  size: 10,
+                                  color: AppColors.dim,
+                                ),
+                              ),
+                            ),
+                    ),
+                  ],
+                );
+              },
             ),
           ),
         ),

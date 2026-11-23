@@ -7,7 +7,9 @@ import 'package:geolocator/geolocator.dart';
 
 import '../core/geo.dart';
 import '../core/geofence.dart';
+import '../core/sensor_quality.dart';
 import '../data/models.dart';
+import '../data/sensor_prefs.dart';
 import '../state/nav_state.dart';
 
 enum GpsSimulation { ok, denied, disabled, noSignal }
@@ -15,15 +17,37 @@ enum GpsSimulation { ok, denied, disabled, noSignal }
 /// Motor de navegación del prototipo. Los cálculos viven en core/ y aquí solo
 /// se orquesta el estado, la simulación y (opcionalmente) los sensores reales.
 class NavigationController extends ChangeNotifier {
-  NavigationController({required this.catalog}) {
+  NavigationController({
+    required this.catalog,
+    SensorPrefs? sensorPrefs,
+    DateTime Function()? clock,
+  }) : // Un parámetro nombrado no puede empezar por `_`, así que no se puede
+       // usar el formal inicializador que sugiere el lint.
+       // ignore: prefer_initializing_formals
+       _sensorPrefs = sensorPrefs,
+       _clock = clock ?? DateTime.now {
     _reset(notify: false);
   }
 
   final Catalog catalog;
 
+  /// `null` en tests: no se lee ni se escribe nada en disco.
+  final SensorPrefs? _sensorPrefs;
+
+  /// Reloj inyectable para el descarte de fixes y las marcas del log.
+  final DateTime Function() _clock;
+
   static const Duration _tickDuration = Duration(milliseconds: 300);
   static const double _stepM = 3;
   static const double _accuracyLimitM = 30;
+  static const double _compassAccuracyLimitDeg = 15;
+
+  /// Filtro de calidad de fixes: descarta imprecisos, viejos y saltos.
+  final FixGate _gate = FixGate();
+
+  late final SensorLog _log = SensorLog(capacity: _logCapacity, clock: _clock);
+
+  static const int _logCapacity = 40;
 
   late Building? _target;
   double _lat = campusOriginLat;
@@ -41,9 +65,17 @@ class NavigationController extends ChangeNotifier {
   Timer? _ticker;
   int _routeIndex = 1;
 
+  /// Lectura cruda del magnetómetro (sin declinación). La simulación la
+  /// mantiene igual a `_rawHeading`.
+  double _rawCompassDeg = 278;
+  double _declinationDeg = 0;
+  double? _compassAccuracyDeg;
+  bool _settingsLoaded = false;
+
   bool _realSensors = false;
   SensorStatus _realGpsStatus = SensorStatus.ok;
   SensorStatus _realCompassStatus = SensorStatus.ok;
+  int _consecutiveRejections = 0;
   StreamSubscription<Position>? _positionSub;
   StreamSubscription<CompassEvent>? _compassSub;
   bool _disposed = false;
@@ -54,6 +86,12 @@ class NavigationController extends ChangeNotifier {
   List<Building> get buildings => catalog.buildings;
 
   GeoPoint get position => GeoPoint(_lat, _lng);
+
+  /// Origen de la proyección: el centro del catálogo si la API lo trae
+  /// (D-26); si no, el origen global del campus.
+  GeoPoint get origin => catalog.originLat != null && catalog.originLng != null
+      ? GeoPoint(catalog.originLat!, catalog.originLng!)
+      : const GeoPoint(campusOriginLat, campusOriginLng);
 
   double get latitude => _lat;
 
@@ -72,6 +110,16 @@ class NavigationController extends ChangeNotifier {
   GpsSimulation get gpsSimulation => _gpsSimulation;
 
   bool get compassUncalibrated => _compassUncalibrated;
+
+  /// Declinación magnética aplicada al rumbo real, en grados.
+  double get declinationDeg => _declinationDeg;
+
+  /// Exactitud reportada por la brújula, en grados (`null` si no la informa).
+  double? get compassAccuracyDeg => _compassAccuracyDeg;
+
+  /// Últimas entradas del log de sensores (máximo 40), de la más vieja a la
+  /// más reciente.
+  List<String> get sensorLogLines => _log.lines;
 
   Building? get target => _target;
 
@@ -105,7 +153,7 @@ class NavigationController extends ChangeNotifier {
     SensorStatus.disabled =>
       'La ubicación del dispositivo está apagada. Actívala para navegar.',
     SensorStatus.noSignal =>
-      'Señal GPS débil (más de 30 m de precisión). La geocerca está en pausa.',
+      'Señal GPS débil (más de ${_accuracyLimitM.toInt()} m de precisión). La geocerca está en pausa.',
     _ => null,
   };
 
@@ -208,8 +256,9 @@ class NavigationController extends ChangeNotifier {
 
   void _reset({bool notify = true}) {
     _stopTicker();
-    _lat = campusOriginLat;
-    _lng = campusOriginLng;
+    _lat = origin.lat;
+    _lng = origin.lng;
+    _rawCompassDeg = 278;
     _rawHeading = 278;
     _heading = 278;
     _filter.reset(278);
@@ -241,10 +290,57 @@ class NavigationController extends ChangeNotifier {
   void clearTarget() => selectTarget(null);
 
   void setHeading(double degrees) {
-    _rawHeading = normalizeDegrees(degrees);
+    _rawCompassDeg = normalizeDegrees(degrees);
+    _rawHeading = _rawCompassDeg;
     _heading = _filter.filter(_rawHeading);
     _notify();
   }
+
+  /// Carga la calibración persistida. Idempotente: solo lee la primera vez.
+  Future<void> loadSettings() async {
+    if (_settingsLoaded) return;
+    _settingsLoaded = true;
+
+    final prefs = _sensorPrefs;
+    if (prefs == null) return;
+
+    try {
+      final stored = await prefs.loadDeclinationDeg();
+      _applyDeclination(stored);
+      _log.add('declinación', '${_declinationDeg.toStringAsFixed(1)}°');
+      _notify();
+    } catch (_) {
+      // Sin almacenamiento disponible se mantiene la declinación actual.
+    }
+  }
+
+  /// Fija la declinación, la persiste y recalcula el rumbo corregido.
+  Future<void> setDeclinationDeg(double value) async {
+    _applyDeclination(value);
+    _log.add('declinación', '${_declinationDeg.toStringAsFixed(1)}°');
+    _notify();
+
+    final prefs = _sensorPrefs;
+    if (prefs == null) return;
+    try {
+      await prefs.saveDeclinationDeg(_declinationDeg);
+    } catch (_) {
+      // Un fallo de persistencia no rompe la navegación.
+    }
+  }
+
+  /// Aplica [value] recortado a [-30, 30] sobre la última lectura del
+  /// magnetómetro y reinicia el filtro para que el panel no arrastre el valor
+  /// anterior.
+  void _applyDeclination(double value) {
+    _declinationDeg = _clampDeclination(value);
+    _rawHeading = applyDeclinationDeg(_rawCompassDeg, _declinationDeg);
+    _heading = _rawHeading;
+    _filter.reset(_rawHeading);
+  }
+
+  static double _clampDeclination(double value) =>
+      value.clamp(-30.0, 30.0).toDouble();
 
   void alignHeading() {
     final bearing = bearingDeg;
@@ -339,7 +435,7 @@ class NavigationController extends ChangeNotifier {
 
   void _moveAlongRoute(double distanceM) {
     final waypoint = _exploreRoute[_routeIndex % _exploreRoute.length];
-    final point = campusPoint(waypoint.east, waypoint.north);
+    final point = campusPoint(waypoint.east, waypoint.north, origin: origin);
     final remaining = haversineM(_lat, _lng, point.lat, point.lng);
     if (remaining <= distanceM) {
       _lat = point.lat;
@@ -397,18 +493,24 @@ class NavigationController extends ChangeNotifier {
     _realSensors = enabled;
     _realGpsStatus = SensorStatus.ok;
     _realCompassStatus = SensorStatus.ok;
+    _compassAccuracyDeg = null;
+    _consecutiveRejections = 0;
 
     if (!enabled) {
+      _log.add('sensores off');
       _notify();
       return;
     }
 
+    _gate.reset();
+    _log.add('sensores on');
     _notify();
 
     try {
       final serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
         _realGpsStatus = SensorStatus.disabled;
+        _log.add('permiso', SensorStatus.disabled.name);
         _notify();
         return;
       }
@@ -420,75 +522,190 @@ class NavigationController extends ChangeNotifier {
       if (permission == LocationPermission.denied ||
           permission == LocationPermission.deniedForever) {
         _realGpsStatus = SensorStatus.denied;
+        _log.add('permiso', SensorStatus.denied.name);
         _notify();
         return;
       }
 
-      _positionSub =
-          Geolocator.getPositionStream(
-            locationSettings: const LocationSettings(
-              accuracy: LocationAccuracy.high,
-              distanceFilter: 2,
-            ),
-          ).listen(
-            _onRealPosition,
-            onError: (_) {
-              _realGpsStatus = SensorStatus.noSignal;
-              _notify();
-            },
-          );
+      _log.add('permiso', permission.name);
+      _listenPosition();
       _realGpsStatus = SensorStatus.ok;
       _notify();
     } catch (_) {
       _realGpsStatus = SensorStatus.denied;
+      _log.add('permiso', SensorStatus.denied.name);
       _notify();
     }
 
+    _listenCompass();
+    _notify();
+  }
+
+  /// Cancela los streams reales sin cambiar de modo (ahorro de batería).
+  Future<void> pauseSensors() async {
+    if (!_realSensors) return;
+    await _cancelSensorStreams();
+    _log.add('sensores en pausa');
+    _notify();
+  }
+
+  /// Re-suscribe los streams si el modo real sigue activo.
+  Future<void> resumeSensors() async {
+    if (!_realSensors || _disposed) return;
+    if (_positionSub != null || _compassSub != null) return;
+    _listenPosition();
+    _listenCompass();
+    _log.add('sensores en marcha');
+    _notify();
+  }
+
+  void _listenPosition() {
+    _positionSub =
+        Geolocator.getPositionStream(
+          locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.high,
+            distanceFilter: 2,
+          ),
+        ).listen(
+          _onRealPosition,
+          onError: (_) {
+            _realGpsStatus = SensorStatus.noSignal;
+            _notify();
+          },
+        );
+  }
+
+  void _listenCompass() {
     try {
       final stream = FlutterCompass.events;
       if (stream == null) {
         _realCompassStatus = SensorStatus.uncalibrated;
-      } else {
-        _compassSub = stream.listen(
-          (event) {
-            final heading = event.heading;
-            if (heading == null) return;
-            _rawHeading = normalizeDegrees(heading);
-            _heading = _filter.filter(_rawHeading);
-            _notify();
-          },
-          onError: (_) {
-            _realCompassStatus = SensorStatus.uncalibrated;
-            _notify();
-          },
-        );
+        _log.add('brújula', 'sin sensor');
+        return;
       }
+      _compassSub = stream.listen(
+        _onCompassEvent,
+        onError: (_) {
+          _realCompassStatus = SensorStatus.uncalibrated;
+          _log.add('brújula', 'error');
+          _notify();
+        },
+      );
     } catch (_) {
       _realCompassStatus = SensorStatus.uncalibrated;
+      _log.add('brújula', 'error');
+    }
+  }
+
+  void _onRealPosition(Position position) {
+    _ingestFix(
+      lat: position.latitude,
+      lng: position.longitude,
+      accuracyM: position.accuracy,
+      timestamp: position.timestamp,
+    );
+  }
+
+  /// Único camino de entrada de un fix: gate → estado → llegada/geocerca.
+  void _ingestFix({
+    required double lat,
+    required double lng,
+    required double accuracyM,
+    required DateTime timestamp,
+  }) {
+    final verdict = _gate.evaluate(
+      FixSample(lat: lat, lng: lng, accuracyM: accuracyM, timestamp: timestamp),
+      now: _clock(),
+    );
+
+    if (!verdict.accepted) {
+      _consecutiveRejections++;
+      _log.add('fix rechazado', verdict.rejection!.name);
+      if (_consecutiveRejections >= 3) {
+        _realGpsStatus = SensorStatus.noSignal;
+      }
+      _notify();
+      return;
+    }
+
+    _lat = lat;
+    _lng = lng;
+    _accuracy = accuracyM;
+    _realGpsStatus = SensorStatus.ok;
+    _consecutiveRejections = 0;
+    final distance = verdict.distanceFromLastM;
+    _log.add(
+      'fix ok',
+      distance == null ? 'd=primero' : 'd=${distance.toStringAsFixed(1)}m',
+    );
+
+    if (_target != null) {
+      final point = _directedPoint;
+      if (point != null &&
+          point.distanceM <= arrivalRadiusM(_target!.coverageRadiusM)) {
+        _handleArrival();
+      }
+    } else {
+      _evaluateGeofence();
     }
     _notify();
   }
 
-  void _onRealPosition(Position position) {
-    _lat = position.latitude;
-    _lng = position.longitude;
-    _accuracy = position.accuracy;
-    _realGpsStatus = position.accuracy > _accuracyLimitM
-        ? SensorStatus.noSignal
-        : SensorStatus.ok;
+  /// Un evento de brújula: declinación → filtro → exactitud.
+  void _onCompassEvent(CompassEvent event) {
+    _ingestCompass(heading: event.heading, accuracy: event.accuracy);
+  }
 
-    if (_realGpsStatus == SensorStatus.ok) {
-      if (_target != null) {
-        final point = _directedPoint;
-        if (point != null &&
-            point.distanceM <= arrivalRadiusM(_target!.coverageRadiusM)) {
-          _handleArrival();
-        }
-      } else {
-        _evaluateGeofence();
+  void _ingestCompass({required double? heading, double? accuracy}) {
+    if (accuracy != null) {
+      final previous = _realCompassStatus;
+      _compassAccuracyDeg = accuracy;
+      _realCompassStatus = accuracy > _compassAccuracyLimitDeg
+          ? SensorStatus.uncalibrated
+          : SensorStatus.ok;
+      if (_realCompassStatus != previous) {
+        _log.add('brújula', '±${accuracy.toStringAsFixed(1)}°');
       }
     }
+
+    if (heading == null) {
+      _notify();
+      return;
+    }
+
+    _rawCompassDeg = normalizeDegrees(heading);
+    _rawHeading = applyDeclinationDeg(_rawCompassDeg, _declinationDeg);
+    _heading = _filter.filter(_rawHeading);
     _notify();
+  }
+
+  /// Inyecta un fix por el mismo camino que un `Position` real.
+  @visibleForTesting
+  void debugIngestFix({
+    required double lat,
+    required double lng,
+    required double accuracyM,
+    required DateTime timestamp,
+  }) => _ingestFix(
+    lat: lat,
+    lng: lng,
+    accuracyM: accuracyM,
+    timestamp: timestamp,
+  );
+
+  /// Inyecta una lectura de brújula por el mismo camino que un evento real.
+  @visibleForTesting
+  void debugIngestCompass({required double heading, double? accuracy}) =>
+      _ingestCompass(heading: heading, accuracy: accuracy);
+
+  /// Activa el modo real sin tocar plugins (solo para tests).
+  @visibleForTesting
+  void debugUseRealSensors() {
+    _realSensors = true;
+    _gate.reset();
+    _consecutiveRejections = 0;
+    _realGpsStatus = SensorStatus.ok;
+    _realCompassStatus = SensorStatus.ok;
   }
 
   Future<void> _cancelSensorStreams() async {
