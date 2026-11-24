@@ -73,6 +73,12 @@ class NavigationController extends ChangeNotifier {
   bool _settingsLoaded = false;
 
   bool _realSensors = false;
+
+  /// `true` mientras la próxima lectura del magnetómetro deba fijar el rumbo
+  /// directamente: al activar los sensores reales el filtro no debe arrastrar
+  /// el valor sembrado de la demo (278°).
+  bool _compassSeedPending = false;
+
   SensorStatus _realGpsStatus = SensorStatus.ok;
   SensorStatus _realCompassStatus = SensorStatus.ok;
   int _consecutiveRejections = 0;
@@ -412,13 +418,23 @@ class NavigationController extends ChangeNotifier {
     _arrived = true;
     _walking = false;
     _stopTicker();
-    _alert();
+    _arrivalHaptic();
     final building = _target;
     if (building != null && !_arrivalNotified) {
       _arrivalNotified = true;
       onArrival?.call(building);
     }
     _notify();
+  }
+
+  /// Aviso de llegada del Modo A: doble vibración ligera y silenciosa, sin
+  /// sonido. El aviso fuerte de [_alert] queda reservado a la geocerca (Modo B).
+  void _arrivalHaptic() {
+    unawaited(HapticFeedback.lightImpact());
+    Timer(const Duration(milliseconds: 120), () {
+      if (_disposed) return;
+      unawaited(HapticFeedback.lightImpact());
+    });
   }
 
   void _moveToward(GeoPoint destination, double distanceM) {
@@ -491,6 +507,7 @@ class NavigationController extends ChangeNotifier {
     _walking = false;
     await _cancelSensorStreams();
     _realSensors = enabled;
+    _compassSeedPending = enabled;
     _realGpsStatus = SensorStatus.ok;
     _realCompassStatus = SensorStatus.ok;
     _compassAccuracyDeg = null;
@@ -675,7 +692,16 @@ class NavigationController extends ChangeNotifier {
 
     _rawCompassDeg = normalizeDegrees(heading);
     _rawHeading = applyDeclinationDeg(_rawCompassDeg, _declinationDeg);
-    _heading = _filter.filter(_rawHeading);
+    if (_compassSeedPending) {
+      // Arranque limpio: la primera lectura real fija el rumbo sin mezclarse
+      // con el 278° de la demo.
+      _compassSeedPending = false;
+      _filter.reset(_rawHeading);
+      _heading = _rawHeading;
+      _log.add('brújula', 'arranque ${_heading.toStringAsFixed(0)}°');
+    } else {
+      _heading = _filter.filter(_rawHeading);
+    }
     _notify();
   }
 
@@ -702,6 +728,7 @@ class NavigationController extends ChangeNotifier {
   @visibleForTesting
   void debugUseRealSensors() {
     _realSensors = true;
+    _compassSeedPending = true;
     _gate.reset();
     _consecutiveRejections = 0;
     _realGpsStatus = SensorStatus.ok;

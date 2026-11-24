@@ -20,7 +20,7 @@ Prototipo Flutter **UthMap** (navegación de campus por brújula + geocercado), 
 | `docs/STATE.md` | Tablero de tareas, puertas y decisiones (lo edita solo el Arquitecto) |
 | `docs/source/` | Fuentes originales (PDF de requisitos, manual HTML de endpoints). Solo ante discrepancia |
 
-Skills (cargar con la tool `skill`): `anti-ai-slop-uiux`, `component-reference-design`, `ui-ux-pro-max` (solo para UI).
+Skills (cargar con la tool `skill`): `anti-ai-slop-uiux`, `component-reference-design`, `ui-ux-pro-max`, `android-design-guidelines`, `ios-design-guidelines`, `mobile-app-ui-design` (solo para UI).
 
 ## Comunicación y pausas
 - Arquitecto delega al subagente `operador`; el reporte del Operador regresa solo al Arquitecto.

@@ -135,89 +135,120 @@ class _NavSheetState extends State<NavSheet> {
             ),
           ),
           Expanded(
-            child: Padding(
-              padding: EdgeInsets.fromLTRB(22, 2, 22, 22 + widget.bottomInset),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (nearby != null && !directed) ...[
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: SizedBox(
-                            width: 44,
-                            height: 44,
-                            child: BuildingPhoto(
-                              building: nearby,
-                              mediaCache: _mediaCache,
-                              fit: BoxFit.cover,
-                              memCacheWidth: 132,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                      ],
-                      Expanded(
-                        child: Padding(
-                          padding: EdgeInsets.only(
-                            top: (nearby != null && !directed) ? 8 : 0,
-                          ),
-                          child: Text(
-                            title,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontFamily: 'SpaceGrotesk',
-                              fontSize: 20,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: -0.2,
-                              color: AppColors.ink,
-                            ),
-                          ),
-                        ),
+            // Con poco alto (360×800) el contenido puede no caber, sobre todo
+            // mientras el contenedor crece al expandirse: el scroll —sin
+            // desplazamiento real— evita el desbordamiento sin cambiar
+            // tamaños, colores ni el orden del wireframe.
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  physics: const NeverScrollableScrollPhysics(),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight,
+                    ),
+                    child: Padding(
+                      padding: EdgeInsets.fromLTRB(
+                        22,
+                        2,
+                        22,
+                        22 + widget.bottomInset,
                       ),
-                      const SizedBox(width: 10),
-                      CategoryPill(text: areaText, active: inside),
-                    ],
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  if (nearby != null && !directed) ...[
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: SizedBox(
+                                        width: 44,
+                                        height: 44,
+                                        child: BuildingPhoto(
+                                          building: nearby,
+                                          mediaCache: _mediaCache,
+                                          fit: BoxFit.cover,
+                                          memCacheWidth: 132,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 10),
+                                  ],
+                                  Expanded(
+                                    child: Padding(
+                                      padding: EdgeInsets.only(
+                                        top: (nearby != null && !directed)
+                                            ? 8
+                                            : 0,
+                                      ),
+                                      child: Text(
+                                        title,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(
+                                          fontFamily: 'SpaceGrotesk',
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.w700,
+                                          letterSpacing: -0.2,
+                                          color: AppColors.ink,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  CategoryPill(text: areaText, active: inside),
+                                ],
+                              ),
+                              const SizedBox(height: 14),
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    distanceText,
+                                    style: const TextStyle(
+                                      fontFamily: 'SpaceGrotesk',
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.ink,
+                                      fontFeatures: [
+                                        FontFeature.tabularFigures(),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(width: 14),
+                                  Expanded(
+                                    child: Text(
+                                      hint,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        fontFamily: 'SpaceGrotesk',
+                                        fontSize: 12,
+                                        height: 1.4,
+                                        color: Color(0xFF737373),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                          if (widget.expanded)
+                            _cta(context, directed, target, nearby),
+                        ],
+                      ),
+                    ),
                   ),
-                  const SizedBox(height: 14),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Text(
-                        distanceText,
-                        style: const TextStyle(
-                          fontFamily: 'SpaceGrotesk',
-                          fontSize: 20,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.ink,
-                          fontFeatures: [FontFeature.tabularFigures()],
-                        ),
-                      ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Text(
-                          hint,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontFamily: 'SpaceGrotesk',
-                            fontSize: 12,
-                            height: 1.4,
-                            color: Color(0xFF737373),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  if (widget.expanded) ...[
-                    const Spacer(),
-                    _cta(context, directed, target, nearby),
-                  ],
-                ],
-              ),
+                );
+              },
             ),
           ),
         ],

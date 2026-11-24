@@ -134,10 +134,15 @@ class Building {
   List<BuildingCoordinate> get entrances =>
       coordinates.where((coordinate) => coordinate.type.isEntrance).toList();
 
-  BuildingCoordinate get mainEntrance => entrances.firstWhere(
-    (coordinate) => coordinate.type == CoordinateType.entradaPrincipal,
-    orElse: () => entrances.first,
-  );
+  /// Acceso que orienta el Modo A: la `ENTRADA_PRINCIPAL`, la primera entrada
+  /// si no hay principal, o `null` si el edificio no tiene accesos.
+  BuildingCoordinate? get mainEntrance {
+    final entranceList = entrances;
+    for (final entrance in entranceList) {
+      if (entrance.type == CoordinateType.entradaPrincipal) return entrance;
+    }
+    return entranceList.isEmpty ? null : entranceList.first;
+  }
 
   String get searchText => foldForSearch(
     [

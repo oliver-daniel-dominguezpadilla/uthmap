@@ -16,6 +16,9 @@ const String defaultOrionisBaseUrl = String.fromEnvironment(
 /// Tiempo máximo por petición (`docs/01-api-contract.md` §"Errores a manejar").
 const Duration defaultCampusApiTimeout = Duration(seconds: 10);
 
+/// Espera máxima que se acepta respetar con un reintento único tras un 429.
+const Duration _maxRateLimitRetry = Duration(seconds: 2);
+
 /// Fallo de red, HTTP o de formato; el consumidor nunca ve otra excepción.
 class CampusApiException implements Exception {
   const CampusApiException({this.statusCode, required this.message});
@@ -54,15 +57,18 @@ class CampusApi {
     String baseUrl = defaultOrionisBaseUrl,
     Future<String> Function()? deviceIdProvider,
     this.timeout = defaultCampusApiTimeout,
+    Future<void> Function(Duration)? sleep,
   }) : _client = client ?? http.Client(),
        _baseUrl = baseUrl.endsWith('/')
            ? baseUrl.substring(0, baseUrl.length - 1)
            : baseUrl,
-       _deviceIdProvider = deviceIdProvider ?? ensureDeviceId;
+       _deviceIdProvider = deviceIdProvider ?? ensureDeviceId,
+       _sleep = sleep ?? Future<void>.delayed;
 
   final http.Client _client;
   final String _baseUrl;
   final Future<String> Function() _deviceIdProvider;
+  final Future<void> Function(Duration) _sleep;
 
   /// Plazo máximo por petición; inyectable en tests.
   final Duration timeout;
@@ -114,9 +120,39 @@ class CampusApi {
   Future<Map<String, dynamic>> _getJson(String path) async {
     final deviceId = await _requireDeviceId();
 
-    final http.Response response;
+    var attempt = 0;
+    while (true) {
+      attempt++;
+      final response = await _get(path, deviceId);
+
+      if (response.statusCode == 429) {
+        final retryAfter = _parseRetryAfter(response.headers);
+        if (attempt == 1 &&
+            retryAfter != null &&
+            retryAfter <= _maxRateLimitRetry) {
+          await _sleep(retryAfter);
+          continue;
+        }
+        throw RateLimitedException(
+          message: _messageFromBody(response.body) ?? 'cuota agotada',
+          retryAfter: retryAfter,
+        );
+      }
+      if (response.statusCode != 200) {
+        throw CampusApiException(
+          statusCode: response.statusCode,
+          message:
+              _messageFromBody(response.body) ?? 'HTTP ${response.statusCode}',
+        );
+      }
+
+      return _decodeEnvelope(response.body);
+    }
+  }
+
+  Future<http.Response> _get(String path, String deviceId) async {
     try {
-      response = await _client
+      return await _client
           .get(
             _uri(path),
             headers: {'Accept': 'application/json', 'X-Device-Id': deviceId},
@@ -127,22 +163,6 @@ class CampusApi {
     } catch (error) {
       throw CampusApiException(message: 'fallo de red: $error');
     }
-
-    if (response.statusCode == 429) {
-      throw RateLimitedException(
-        message: _messageFromBody(response.body) ?? 'cuota agotada',
-        retryAfter: _parseRetryAfter(response.headers),
-      );
-    }
-    if (response.statusCode != 200) {
-      throw CampusApiException(
-        statusCode: response.statusCode,
-        message:
-            _messageFromBody(response.body) ?? 'HTTP ${response.statusCode}',
-      );
-    }
-
-    return _decodeEnvelope(response.body);
   }
 
   Map<String, dynamic> _decodeEnvelope(String body) {

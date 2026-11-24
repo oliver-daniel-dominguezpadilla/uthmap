@@ -14,17 +14,23 @@ CampusApi _api(
   MockClient client, {
   Duration timeout = const Duration(seconds: 10),
   Future<String> Function()? deviceIdProvider,
+  Future<void> Function(Duration)? sleep,
 }) => CampusApi(
   client: client,
   baseUrl: _baseUrl,
   deviceIdProvider: deviceIdProvider ?? () async => _deviceId,
   timeout: timeout,
+  sleep: sleep ?? (_) async {},
 );
 
-http.Response _json(String body, {int statusCode = 200}) => http.Response(
+http.Response _json(
+  String body, {
+  int statusCode = 200,
+  Map<String, String> headers = const {},
+}) => http.Response(
   body,
   statusCode,
-  headers: const {'content-type': 'application/json'},
+  headers: {'content-type': 'application/json', ...headers},
 );
 
 void main() {
@@ -123,6 +129,168 @@ void main() {
       ),
     );
     await api.close();
+  });
+
+  group('reintento único en 429', () {
+    test(
+      '429 con Retry-After de 1 s reintenta una vez y devuelve el payload',
+      () async {
+        var requests = 0;
+        var deviceIdCalls = 0;
+        final sleeps = <Duration>[];
+        final api = _api(
+          MockClient((request) async {
+            requests++;
+            if (requests == 1) {
+              return _json(
+                '{"success":false,"data":null,"message":"Too many requests"}',
+                statusCode: 429,
+                headers: const {'retry-after': '1'},
+              );
+            }
+            return _json('{"success":true,"data":"2026-11-03T04:22:33+00:00"}');
+          }),
+          deviceIdProvider: () async {
+            deviceIdCalls++;
+            return _deviceId;
+          },
+          sleep: (duration) async => sleeps.add(duration),
+        );
+
+        expect(await api.latestUpdate(), '2026-11-03T04:22:33+00:00');
+        expect(requests, 2);
+        expect(sleeps, hasLength(1));
+        expect(sleeps.single, const Duration(seconds: 1));
+        expect(deviceIdCalls, 1);
+        await api.close();
+      },
+    );
+
+    test(
+      '429 dos veces lanza RateLimitedException tras 2 peticiones',
+      () async {
+        var requests = 0;
+        final sleeps = <Duration>[];
+        final api = _api(
+          MockClient((_) async {
+            requests++;
+            return _json(
+              '{"success":false,"data":null,"message":"Too many requests"}',
+              statusCode: 429,
+              headers: const {'retry-after': '1'},
+            );
+          }),
+          sleep: (duration) async => sleeps.add(duration),
+        );
+
+        await expectLater(
+          api.latestUpdate(),
+          throwsA(
+            isA<RateLimitedException>().having(
+              (error) => error.retryAfter,
+              'retryAfter',
+              isNotNull,
+            ),
+          ),
+        );
+        expect(requests, 2);
+        expect(sleeps, hasLength(1));
+        await api.close();
+      },
+    );
+
+    test('429 con Retry-After de 60 s no reintenta', () async {
+      var requests = 0;
+      final sleeps = <Duration>[];
+      final api = _api(
+        MockClient((_) async {
+          requests++;
+          return _json(
+            '{"success":false,"data":null,"message":"Too many requests"}',
+            statusCode: 429,
+            headers: const {'retry-after': '60'},
+          );
+        }),
+        sleep: (duration) async => sleeps.add(duration),
+      );
+
+      await expectLater(
+        api.latestUpdate(),
+        throwsA(
+          isA<RateLimitedException>().having(
+            (error) => error.retryAfter,
+            'retryAfter',
+            const Duration(seconds: 60),
+          ),
+        ),
+      );
+      expect(requests, 1);
+      expect(sleeps, isEmpty);
+      await api.close();
+    });
+
+    test('429 sin Retry-After no reintenta y retryAfter es null', () async {
+      var requests = 0;
+      final api = _api(
+        MockClient((_) async {
+          requests++;
+          return _json(
+            '{"success":false,"data":null,"message":"Too many requests"}',
+            statusCode: 429,
+          );
+        }),
+      );
+
+      await expectLater(
+        api.latestUpdate(),
+        throwsA(
+          isA<RateLimitedException>().having(
+            (error) => error.retryAfter,
+            'retryAfter',
+            isNull,
+          ),
+        ),
+      );
+      expect(requests, 1);
+      await api.close();
+    });
+
+    test('200 a la primera hace una sola petición', () async {
+      var requests = 0;
+      final api = _api(
+        MockClient((_) async {
+          requests++;
+          return _json('{"success":true,"data":null}');
+        }),
+      );
+
+      expect(await api.latestUpdate(), isNull);
+      expect(requests, 1);
+      await api.close();
+    });
+
+    test('500 no reintenta y lanza CampusApiException', () async {
+      var requests = 0;
+      final api = _api(
+        MockClient((_) async {
+          requests++;
+          return _json('{"success":false,"message":"boom"}', statusCode: 500);
+        }),
+      );
+
+      await expectLater(
+        api.latestUpdate(),
+        throwsA(
+          isA<CampusApiException>().having(
+            (error) => error.statusCode,
+            'statusCode',
+            500,
+          ),
+        ),
+      );
+      expect(requests, 1);
+      await api.close();
+    });
   });
 
   test('500 lanza CampusApiException con statusCode', () async {

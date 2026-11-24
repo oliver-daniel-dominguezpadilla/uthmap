@@ -99,6 +99,8 @@ class _UthMapAppState extends State<UthMapApp> with WidgetsBindingObserver {
       _controller?.dispose();
       _controller = _createController(catalog);
     });
+    // Los videos se cachean en segundo plano: nunca retrasan el arranque.
+    unawaited(_mediaCache.prefetchVideos(catalog));
     if (!offline || _offlineNoticeShown) return;
     _offlineNoticeShown = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {

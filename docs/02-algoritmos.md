@@ -110,6 +110,13 @@ class ProximityTracker {
 }
 ```
 
+## Proyección local, origen y radio de llegada
+
+- `projectToCampus(point, {origin})` y `campusPoint(east, north, {origin})` trabajan en metros locales (este/norte) respecto a un `origin`. Por defecto el origen global `(19.0, −98.2)`; el catálogo remoto trae el suyo (`Catalog.originLat/Lng`, promedio de sus puntos) y **todos** los consumidores deben usar el mismo: mapa isométrico, huellas y recorrido de demo (D-26, test `catalog_origin_test.dart`).
+- Escalas: `metersPerDegLat = 111 320`; longitud `× cos(lat)` vía `metersPerDegLngAt(lat)`. Es una aproximación plana local, válida a escala de campus (≤ pocos km), no sustituye a Haversine para distancias.
+- Radios: proximidad Modo B = `radio_cobertura` del edificio (default 20 m); llegada Modo A = `arrivalRadiusM(radio) = min(15, radio)`. La UI no calcula radios: los lee del controlador.
+- Invariante: `needleAngleDeg = (bearing − heading) mod 360`, con `normalizeDegrees` para el paso 359→0 y `shortestDeltaDeg` en el filtro.
+
 ## Tests (con vectores verificados)
 Punto base A = (20.08123456, −98.76123456).
 

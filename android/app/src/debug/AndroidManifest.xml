@@ -4,4 +4,8 @@
          to allow setting breakpoints, to provide hot reload, etc.
     -->
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- Debug only: allow cleartext HTTP so cached_network_image / flutter_cache_manager
+         can download foto_url / url_video served as http:// by the backend during
+         on-device testing. Release builds keep the cleartext default (blocked). -->
+    <application android:usesCleartextTraffic="true"/>
 </manifest>

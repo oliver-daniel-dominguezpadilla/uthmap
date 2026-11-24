@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
@@ -92,18 +93,12 @@ void main() {
   test('videoFile devuelve null si el fetcher lanza y no propaga', () async {
     final fetcher = _FakeFetcher(
       tempDir,
-      failOn: const {'https://x.test/a.mp4'},
+      failOn: const {'https://x.test/rota.mp4'},
     );
     final cache = MediaCache(fetcher: fetcher.call);
 
-    File? file;
-    await expectLater(
-      () async => file = await cache.videoFile('https://x.test/a.mp4'),
-      returnsNormally,
-    );
-
-    expect(file, isNull);
-    expect(fetcher.calls, ['https://x.test/a.mp4']);
+    expect(await cache.videoFile('https://x.test/rota.mp4'), isNull);
+    expect(fetcher.calls, ['https://x.test/rota.mp4']);
   });
 
   test('prefetchVideos deduplica por URL y respeta max', () async {
@@ -170,6 +165,99 @@ void main() {
         (provider as CachedNetworkImageProvider).url,
         'https://x.test/a.jpg',
       );
+    },
+  );
+
+  test('videoFile corta por timeout y devuelve null sin lanzar', () async {
+    final cache = MediaCache(
+      fetcher: (url) => Completer<File>().future, // nunca completa
+    );
+
+    final stopwatch = Stopwatch()..start();
+    final file = await cache.videoFile(
+      'https://x.test/lenta.mp4',
+      timeout: const Duration(milliseconds: 10),
+    );
+    stopwatch.stop();
+
+    expect(file, isNull);
+    expect(stopwatch.elapsed, lessThan(const Duration(seconds: 1)));
+  });
+
+  test('prefetchVideos lanza las descargas en paralelo', () async {
+    final completers = <String, Completer<File>>{};
+    final started = <String>[];
+    final cache = MediaCache(
+      fetcher: (url) {
+        started.add(url);
+        final completer = Completer<File>();
+        completers[url] = completer;
+        return completer.future;
+      },
+    );
+    final catalog = _catalog([
+      _building(id: 'b1', videoUrl: 'https://x.test/a.mp4'),
+      _building(id: 'b2', videoUrl: 'https://x.test/b.mp4'),
+      _building(id: 'b3', videoUrl: 'https://x.test/c.mp4'),
+    ]);
+
+    final pending = cache.prefetchVideos(catalog);
+    await Future<void>.delayed(Duration.zero);
+
+    // Las tres peticiones ya están en vuelo antes de completar ninguna.
+    expect(started, hasLength(3));
+    expect(completers.keys, started);
+
+    for (final entry in completers.entries) {
+      entry.value.complete(File('${tempDir.path}/${entry.key.hashCode}.bin'));
+    }
+
+    expect(await pending, 3);
+  });
+
+  test('prefetchVideos con max 2 solo pide dos URLs', () async {
+    final fetcher = _FakeFetcher(tempDir);
+    final cache = MediaCache(fetcher: fetcher.call);
+    final catalog = _catalog([
+      _building(id: 'b1', videoUrl: 'https://x.test/a.mp4'),
+      _building(id: 'b2', videoUrl: 'https://x.test/b.mp4'),
+      _building(id: 'b3', videoUrl: 'https://x.test/c.mp4'),
+    ]);
+
+    expect(await cache.prefetchVideos(catalog, max: 2), 2);
+    expect(fetcher.calls, ['https://x.test/a.mp4', 'https://x.test/b.mp4']);
+  });
+
+  test('prefetchVideos pide una sola vez una URL repetida', () async {
+    final fetcher = _FakeFetcher(tempDir);
+    final cache = MediaCache(fetcher: fetcher.call);
+    const repeated = 'https://x.test/repetido.mp4';
+    final catalog = _catalog([
+      _building(id: 'b1', videoUrl: repeated),
+      _building(id: 'b2', videoUrl: repeated),
+      _building(id: 'b3', videoUrl: repeated),
+    ]);
+
+    expect(await cache.prefetchVideos(catalog), 1);
+    expect(fetcher.calls, [repeated]);
+  });
+
+  test(
+    'prefetchVideos devuelve 1 si una URL falla y otra va bien, sin lanzar',
+    () async {
+      final fetcher = _FakeFetcher(
+        tempDir,
+        failOn: const {'https://x.test/rota.mp4'},
+      );
+      final cache = MediaCache(fetcher: fetcher.call);
+      final catalog = _catalog([
+        _building(id: 'b1', videoUrl: 'https://x.test/rota.mp4'),
+        _building(id: 'b2', videoUrl: 'https://x.test/buena.mp4'),
+      ]);
+
+      final downloaded = await cache.prefetchVideos(catalog);
+
+      expect(downloaded, 1);
     },
   );
 }

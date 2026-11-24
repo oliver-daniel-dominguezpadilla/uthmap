@@ -230,10 +230,11 @@ void main() {
       final catalog = await _loadCatalog();
       final k = catalog.buildings.first;
       final entrance = k.mainEntrance;
+      expect(entrance, isNotNull);
       final distance = haversineM(
         campusOriginLat,
         campusOriginLng,
-        entrance.lat,
+        entrance!.lat,
         entrance.lng,
       );
       final bearing = initialBearingDeg(

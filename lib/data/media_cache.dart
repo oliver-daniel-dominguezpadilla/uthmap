@@ -31,14 +31,21 @@ class MediaCache {
 
   /// Archivo de video en caché, o `null` si la URL es vacía/nula o falla la
   /// descarga. Nunca lanza.
-  Future<File?> videoFile(String? url) async {
+  ///
+  /// La descarga se corta a los [timeout]; al vencer devuelve `null` como
+  /// cualquier otro fallo para no bloquear la ficha.
+  Future<File?> videoFile(
+    String? url, {
+    Duration timeout = const Duration(seconds: 20),
+  }) async {
     final remote = _remoteUrl(url);
     if (remote == null) return null;
 
     try {
-      return await _fetcher(remote);
+      return await _fetcher(remote).timeout(timeout);
     } catch (_) {
-      // Sin red, 404, formato inválido: la ficha degrada a "abrir enlace".
+      // Sin red, 404, formato inválido o timeout: la ficha degrada a
+      // "abrir enlace".
       return null;
     }
   }
@@ -46,10 +53,17 @@ class MediaCache {
   /// Proveedor de imagen cacheada para `CachedNetworkImageProvider`.
   ImageProvider imageProvider(String url) => _imageFactory(url);
 
-  /// Descarga hasta [max] videos distintos del catálogo, en orden, sin lanzar.
+  /// Descarga hasta [max] videos distintos del catálogo, en paralelo, sin
+  /// lanzar.
   ///
-  /// Devuelve cuántos archivos se obtuvieron con éxito; los fallos se ignoran.
-  Future<int> prefetchVideos(Catalog catalog, {int max = 3}) async {
+  /// Cada descarga respeta [timeout], así que el peor caso es un ciclo de
+  /// [timeout] (no `max × timeout`). Devuelve cuántos archivos se obtuvieron
+  /// con éxito; los fallos se ignoran.
+  Future<int> prefetchVideos(
+    Catalog catalog, {
+    int max = 3,
+    Duration timeout = const Duration(seconds: 20),
+  }) async {
     if (max <= 0) return 0;
 
     final seen = <String>{};
@@ -60,13 +74,12 @@ class MediaCache {
       targets.add(url);
       if (targets.length >= max) break;
     }
+    if (targets.isEmpty) return 0;
 
-    var downloaded = 0;
-    for (final url in targets) {
-      final file = await videoFile(url);
-      if (file != null) downloaded++;
-    }
-    return downloaded;
+    final files = await Future.wait(
+      targets.map((url) => videoFile(url, timeout: timeout)),
+    );
+    return files.where((file) => file != null).length;
   }
 
   /// URL remota normalizada, o `null` si es nula, vacía o no es http/https.

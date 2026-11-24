@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:uthmap/core/geo.dart';
 import 'package:uthmap/data/catalog_repository.dart';
@@ -48,6 +49,34 @@ Catalog _withBuildings(Catalog catalog, List<Building> buildings) => Catalog(
   originLng: catalog.originLng,
   skipped: catalog.skipped,
 );
+
+/// Intercepta las llamadas a `SystemChannels.platform` (hápticos y sonidos)
+/// para poder contarlas desde los tests.
+class _PlatformCalls {
+  final List<MethodCall> calls = <MethodCall>[];
+
+  int count(String method, [Object? arguments]) => calls
+      .where(
+        (call) =>
+            call.method == method &&
+            (arguments == null || call.arguments == arguments),
+      )
+      .length;
+}
+
+_PlatformCalls _capturePlatformCalls() {
+  final capture = _PlatformCalls();
+  final messenger =
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+  messenger.setMockMethodCallHandler(SystemChannels.platform, (call) async {
+    capture.calls.add(call);
+    return null;
+  });
+  addTearDown(
+    () => messenger.setMockMethodCallHandler(SystemChannels.platform, null),
+  );
+  return capture;
+}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -166,7 +195,9 @@ void main() {
     )..debugUseRealSensors();
 
     controller.selectTarget(building);
-    final entrance = building.mainEntrance.point;
+    final mainEntrance = building.mainEntrance;
+    expect(mainEntrance, isNotNull);
+    final entrance = mainEntrance!.point;
     final far = moveBy(entrance, 0, 11);
     final near = moveBy(entrance, 0, 9);
 
@@ -233,5 +264,156 @@ void main() {
     controller.setHeading(90);
 
     expect(controller.rawHeading, 90);
+  });
+
+  test('brújula real: la primera lectura fija el rumbo exacto sin el 278° sembrado', () {
+    final controller = NavigationController(catalog: catalog, clock: () => t0)
+      ..debugUseRealSensors();
+
+    controller.debugIngestCompass(heading: 120);
+
+    expect(controller.heading, closeTo(120, 1e-9));
+    expect(
+      controller.sensorLogLines.last,
+      endsWith('· brújula · arranque 120°'),
+    );
+
+    // La segunda lectura vuelve al filtro normal: no se reinicia por muestra.
+    controller.debugIngestCompass(heading: 120);
+
+    expect(controller.heading, closeTo(120, 1e-9));
+    expect(
+      controller.sensorLogLines.where((line) => line.contains('arranque')),
+      hasLength(1),
+    );
+  });
+
+  test(
+    'brújula real: el arranque usa el rumbo ya corregido por declinación',
+    () async {
+      final controller = NavigationController(catalog: catalog, clock: () => t0)
+        ..debugUseRealSensors();
+      await controller.setDeclinationDeg(7);
+
+      controller.debugIngestCompass(heading: 350);
+
+      expect(controller.heading, closeTo(normalizeDegrees(357), 1e-9));
+      expect(
+        controller.sensorLogLines.last,
+        endsWith('· brújula · arranque 357°'),
+      );
+    },
+  );
+
+  test(
+    'brújula real: desactivar y reactivar repite el arranque limpio',
+    () async {
+      final controller = NavigationController(catalog: catalog, clock: () => t0)
+        ..debugUseRealSensors();
+
+      controller.debugIngestCompass(heading: 120);
+      expect(controller.heading, closeTo(120, 1e-9));
+
+      // Segunda lectura: sí se mezcla con el filtro (α = 0.15).
+      controller.debugIngestCompass(heading: 300);
+      expect(controller.heading, closeTo(147, 1e-6));
+
+      await controller.setRealSensors(false);
+      expect(controller.realSensors, isFalse);
+
+      controller.debugUseRealSensors();
+      controller.debugIngestCompass(heading: 300);
+
+      expect(controller.heading, closeTo(300, 1e-9));
+      expect(
+        controller.sensorLogLines.where((line) => line.contains('arranque')),
+        hasLength(2),
+      );
+    },
+  );
+
+  test(
+    'brújula real: setRealSensors(true) también arma el arranque limpio',
+    () async {
+      final controller = NavigationController(
+        catalog: catalog,
+        clock: () => t0,
+      );
+
+      await controller.setRealSensors(true);
+      controller.debugIngestCompass(heading: 45);
+
+      expect(controller.realSensors, isTrue);
+      expect(controller.heading, closeTo(45, 1e-9));
+    },
+  );
+
+  testWidgets('llegada Modo A: doble impacto ligero y ningún sonido', (
+    tester,
+  ) async {
+    final calls = _capturePlatformCalls();
+    final building = _withCoverage(catalog.buildings.first, 10);
+    final controller = NavigationController(
+      catalog: _withBuildings(catalog, [building]),
+      clock: () => t0,
+    )..debugUseRealSensors();
+
+    var arrivals = 0;
+    controller.onArrival = (_) => arrivals++;
+    controller.selectTarget(building);
+
+    final entrance = building.mainEntrance!.point;
+    controller.debugIngestFix(
+      lat: entrance.lat,
+      lng: entrance.lng,
+      accuracyM: 5,
+      timestamp: t0,
+    );
+
+    expect(controller.arrived, isTrue);
+    expect(arrivals, 1);
+
+    await tester.pump();
+    expect(
+      calls.count('HapticFeedback.vibrate', 'HapticFeedbackType.lightImpact'),
+      1,
+    );
+
+    await tester.pump(const Duration(milliseconds: 200));
+
+    expect(
+      calls.count('HapticFeedback.vibrate', 'HapticFeedbackType.lightImpact'),
+      2,
+    );
+    expect(calls.count('SystemSound.play'), 0);
+    expect(controller.arrived, isTrue);
+    expect(arrivals, 1);
+  });
+
+  testWidgets('modo B: la geocerca mantiene impacto fuerte y sonido', (
+    tester,
+  ) async {
+    final calls = _capturePlatformCalls();
+    final controller = NavigationController(catalog: catalog, clock: () => t0)
+      ..debugUseRealSensors()
+      ..clearTarget();
+
+    final point = catalog.buildings.first.coordinates.first.point;
+    controller.debugIngestFix(
+      lat: point.lat,
+      lng: point.lng,
+      accuracyM: 5,
+      timestamp: t0,
+    );
+
+    await tester.pump();
+
+    expect(controller.arrived, isFalse);
+    expect(controller.nearby, isNotNull);
+    expect(
+      calls.count('HapticFeedback.vibrate', 'HapticFeedbackType.heavyImpact'),
+      1,
+    );
+    expect(calls.count('SystemSound.play'), 1);
   });
 }

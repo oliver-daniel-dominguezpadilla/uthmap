@@ -96,23 +96,7 @@ class _OsmMapViewState extends State<OsmMapView> {
           ),
         MarkerLayer(
           markers: [
-            for (final building in controller.buildings)
-              Marker(
-                point: LatLng(
-                  building.mainEntrance.lat,
-                  building.mainEntrance.lng,
-                ),
-                width: 44,
-                height: 36,
-                alignment: Alignment.center,
-                child: GestureDetector(
-                  onTap: () => controller.selectTarget(building),
-                  child: _BuildingMarker(
-                    code: building.code,
-                    active: building.id == controller.target?.id,
-                  ),
-                ),
-              ),
+            ..._buildingMarkers(controller),
             Marker(
               point: user,
               width: 44,
@@ -123,6 +107,31 @@ class _OsmMapViewState extends State<OsmMapView> {
         ),
       ],
     );
+  }
+
+  /// Marcadores de edificios; se omiten los que no tienen acceso navegable.
+  List<Marker> _buildingMarkers(NavigationController controller) {
+    final markers = <Marker>[];
+    for (final building in controller.buildings) {
+      final entrance = building.mainEntrance;
+      if (entrance == null) continue;
+      markers.add(
+        Marker(
+          point: LatLng(entrance.lat, entrance.lng),
+          width: 44,
+          height: 36,
+          alignment: Alignment.center,
+          child: GestureDetector(
+            onTap: () => controller.selectTarget(building),
+            child: _BuildingMarker(
+              code: building.code,
+              active: building.id == controller.target?.id,
+            ),
+          ),
+        ),
+      );
+    }
+    return markers;
   }
 }
 
